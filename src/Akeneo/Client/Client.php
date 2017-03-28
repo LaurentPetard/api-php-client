@@ -21,9 +21,9 @@ use Symfony\Component\Config\Definition\Exception\Exception;
  * @license   http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 
-class Client
+class Client implements ClientInterface
 {
-    const TIMEOUT = 2.0;
+    const TIMEOUT = 5.0;
 
     /* @var Authentication */
     protected $authentication;
@@ -113,8 +113,7 @@ class Client
      */
     public function createCategory(array $data)
     {
-        $this->createResource(Route::POST_CATEGORY, Route::POST_CATEGORY, $data);
-
+        $this->createResource(Route::POST_CATEGORY, $data);
     }
 
     /**
@@ -136,9 +135,9 @@ class Client
      *
      * @return array
      */
-    public function getResource($url)
+    protected function getResource($url)
     {
-        $response = $this->doAuthenticatedRequest(HttpMethod::GET, $url);
+        $response = $this->performAuthenticatedRequest(HttpMethod::GET, $url);
 
         if (200 !== $response->getStatusCode()) {
             throw new Exception();
@@ -153,10 +152,12 @@ class Client
      *
      * @throws Exception
      */
-    public function createResource($url, array $data)
+    protected function createResource($url, array $data)
     {
-        $response = $this->doAuthenticatedRequest(HttpMethod::PATCH, $url, [RequestOptions::JSON => $data]);
-
+        $response = $this->performAuthenticatedRequest(HttpMethod::POST, $url, [
+            RequestOptions::HEADERS => ['Content-Type' => 'application/json'],
+            RequestOptions::JSON    => $data,
+        ]);
         if (201 !== $response->getStatusCode()) {
             throw new Exception();
         }
@@ -168,12 +169,15 @@ class Client
      *
      * @throws Exception
      */
-    public function partialUpdateResource($url, array $data)
+    protected function partialUpdateResource($url, array $data)
     {
-        $response = $this->doAuthenticatedRequest(HttpMethod::PATCH, $url, [RequestOptions::JSON => $data]);
+        $response = $this->performAuthenticatedRequest(HttpMethod::PATCH, $url, [
+            RequestOptions::HEADERS => ['Content-Type' => 'application/json'],
+            RequestOptions::JSON    => $data,
+        ]);
 
-        if (200 !== $response->getStatusCode() || 201 !== $response->getStatusCode()) {
-            throw new Exception();
+        if (204 !== $response->getStatusCode() && 201 !== $response->getStatusCode()) {
+            throw new Exception($response->getStatusCode() . '--' . $response->getBody()->getContents());
         }
     }
 
@@ -185,11 +189,11 @@ class Client
      *
      * @return Paginator
      */
-    public function getListResources($url, array $parameters = [])
+    protected function getListResources($url, array $parameters = [])
     {
         $options = [RequestOptions::QUERY => $parameters];
 
-        $response =  $this->doAuthenticatedRequest(HttpMethod::GET, $url, $options);
+        $response =  $this->performAuthenticatedRequest(HttpMethod::GET, $url, $options);
 
         if (200 !== $response->getStatusCode()) {
             throw new Exception();
@@ -218,7 +222,7 @@ class Client
      *
      * @return ResponseInterface
      */
-    public function doAuthenticatedRequest($httpMethod, $url, array $options = [])
+    public function performAuthenticatedRequest($httpMethod, $url, array $options = [])
     {
         if (!$this->isConnected()) {
             $this->connect();
@@ -245,6 +249,8 @@ class Client
                 } catch (ClientException $e) {
                     throw new \Exception($e);
                 }
+            } else {
+                throw $e;
             }
         }
 

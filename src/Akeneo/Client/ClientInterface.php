@@ -13,16 +13,34 @@ interface ClientInterface
 {
     /**
      * @param string $code
-     * @param array  $options
+     *
+     * @throws Exception
      *
      * @return mixed
      */
-    public function getCategory($code, array $options = []);
+    public function getCategory($code);
 
     /**
      * @param array $options
      *
+     * @throws Exception
+     *
      * @return mixed
      */
-    public function getCategories($options = []);
+    public function getCategories(array $options = []);
+
+    /**
+     * @param array $data
+     *
+     * @throws Exception
+     */
+    public function createCategory(array $data);
+
+    /**
+     * @param string $code
+     * @param array  $data
+     *
+     * @throws Exception
+     */
+    public function partialUpdateCategory($code, array $data);
 }

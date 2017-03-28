@@ -61,19 +61,8 @@ class Paginator implements \Iterator
         $items = $this->currentPage->getItems();
 
         if (!isset($items[$this->currentIndex]) && $this->hasNextPage()) {
-            $response = $this->client->request(HttpMethod::GET, $this->currentPage->getNextLink());
-            $body = json_decode($response->getBody()->getContents(), true);
-
-            $nextLink = isset($body['_links']['next']['href']) ? $body['_links']['next']['href'] : null;
-            $previousLink = isset($body['_links']['previous']['href']) ? $body['_links']['previous']['href'] : null;
-            $selfLink= $body['_links']['self']['href'];
-            $firstLink= $body['_links']['first']['href'];
-            $items = $body['_embedded']['items'];
-
-            $pageNumber = $this->getCurrentPage()->getPageNumber() + 1;
-
             $this->currentIndex = 0;
-            $this->currentPage = new Page($selfLink, $firstLink, $previousLink, $nextLink, $pageNumber, $items);
+            $this->currentPage = $this->getNextPage();
         }
     }
 
@@ -82,7 +71,7 @@ class Paginator implements \Iterator
      */
     public function key()
     {
-        return $this->currentIndex;
+        return $this->totalIndex;
     }
 
     /**
@@ -98,6 +87,7 @@ class Paginator implements \Iterator
      */
     public function rewind()
     {
+        $this->totalIndex = 0;
         $this->currentIndex = 0;
         $this->currentPage = $this->firstPage;
     }
@@ -116,5 +106,23 @@ class Paginator implements \Iterator
     protected function hasNextPage()
     {
         return null !== $this->currentPage->getNextLink();
+    }
+
+    /**
+     * Return the next page.
+     */
+    protected function getNextPage() {
+        $response = $this->client->doAuthenticatedRequest(HttpMethod::GET, $this->currentPage->getNextLink());
+        $body = json_decode($response->getBody()->getContents(), true);
+
+        $nextLink = isset($body['_links']['next']['href']) ? $body['_links']['next']['href'] : null;
+        $previousLink = isset($body['_links']['previous']['href']) ? $body['_links']['previous']['href'] : null;
+        $selfLink= $body['_links']['self']['href'];
+        $firstLink= $body['_links']['first']['href'];
+        $items = $body['_embedded']['items'];
+
+        $pageNumber = $this->getCurrentPage()->getPageNumber() + 1;
+
+        return new Page($selfLink, $firstLink, $previousLink, $nextLink, $pageNumber, $items);
     }
 }

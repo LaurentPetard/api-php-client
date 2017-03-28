@@ -21,7 +21,7 @@ use Symfony\Component\Config\Definition\Exception\Exception;
  * @license   http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 
-class Client implements ClientInterface
+class ResourceClient
 {
     const TIMEOUT = 5.0;
 
@@ -47,132 +47,13 @@ class Client implements ClientInterface
     }
 
     /**
-     * @throws \Exception
-     */
-    protected function connect()
-    {
-        $body = [
-            'grant_type' => 'password',
-            'username'   => $this->authentication->getUsername(),
-            'password'   => $this->authentication->getPassword(),
-        ];
-
-        try {
-            $response = $this->guzzleClient->post(Route::TOKEN, [
-                RequestOptions::JSON    => $body,
-                RequestOptions::AUTH    => [
-                    $this->authentication->getClientId(),
-                    $this->authentication->getSecret(),
-                ],
-                RequestOptions::HEADERS => [
-                    //'Cookie'     => 'XDEBUG_SESSION=PHPSTORM',
-                    'Content-Type' => 'application/json',
-                ],
-            ]);
-
-            if (200 !== $response->getStatusCode()) {
-                // TODO : create and handle exception (300.. etc)
-                throw new \Exception($response->getBody()->getContents());
-            }
-
-            $responseContent = json_decode($response->getBody()->getContents(), true);
-
-            $this->authentication->setAccessToken($responseContent['access_token']);
-            $this->authentication->setRefreshToken($responseContent['refresh_token']);
-        } catch (ClientException $e) {
-            throw new \Exception($e->getMessage());
-        }
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getCategory($code)
-    {
-        $url = sprintf(Route::CATEGORY, urlencode($code));
-
-        return $this->getResource($url);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getCategories(array $parameters = [])
-    {
-        return $this->getListResources(Route::CATEGORIES, $parameters);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function createCategory(array $data)
-    {
-        $this->createResource(Route::CATEGORIES, $data);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function partialUpdateCategory($code, array $data)
-    {
-        $url = sprintf(Route::CATEGORY, urlencode($code));
-        $this->partialUpdateResource($url, $data);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getAttribute($code)
-    {
-        $url = sprintf(Route::ATTRIBUTE, urlencode($code));
-
-        return $this->getResource($url);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getAttributes(array $options = [])
-    {
-        return $this->getListResources(Route::ATTRIBUTES, $options);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function createAttribute(array $data)
-    {
-        $this->createResource(Route::ATTRIBUTES, $data);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function partialUpdateAttribute($code, array $data)
-    {
-        $url = sprintf(Route::ATTRIBUTE, urlencode($code));
-
-        $this->partialUpdateResource($url, $data);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getProduct($code, array $filters)
-    {
-        $url = sprintf(Route::PRODUCT, urlencode($code));
-
-        return $this->getResource($url);
-    }
-
-    /**
      * @param string $url
      *
      * @throws Exception
      *
      * @return array
      */
-    protected function getResource($url)
+    public function getResource($url)
     {
         $response = $this->performAuthenticatedRequest(HttpMethod::GET, $url);
 
@@ -189,7 +70,7 @@ class Client implements ClientInterface
      *
      * @throws Exception
      */
-    protected function createResource($url, array $data)
+    public function createResource($url, array $data)
     {
         $response = $this->performAuthenticatedRequest(HttpMethod::POST, $url, [
             RequestOptions::HEADERS => ['Content-Type' => 'application/json'],
@@ -206,7 +87,7 @@ class Client implements ClientInterface
      *
      * @throws Exception
      */
-    protected function partialUpdateResource($url, array $data)
+    public function partialUpdateResource($url, array $data)
     {
         $response = $this->performAuthenticatedRequest(HttpMethod::PATCH, $url, [
             RequestOptions::HEADERS => ['Content-Type' => 'application/json'],
@@ -226,7 +107,7 @@ class Client implements ClientInterface
      *
      * @return Paginator
      */
-    protected function getListResources($url, array $parameters = [])
+    public function getListResources($url, array $parameters = [])
     {
         $options = [RequestOptions::QUERY => $parameters];
 
@@ -292,6 +173,44 @@ class Client implements ClientInterface
         }
 
         return $response;
+    }
+
+    /**
+     * @throws \Exception
+     */
+    protected function connect()
+    {
+        $body = [
+            'grant_type' => 'password',
+            'username'   => $this->authentication->getUsername(),
+            'password'   => $this->authentication->getPassword(),
+        ];
+
+        try {
+            $response = $this->guzzleClient->post(Route::TOKEN, [
+                RequestOptions::JSON    => $body,
+                RequestOptions::AUTH    => [
+                    $this->authentication->getClientId(),
+                    $this->authentication->getSecret(),
+                ],
+                RequestOptions::HEADERS => [
+                    //'Cookie'     => 'XDEBUG_SESSION=PHPSTORM',
+                    'Content-Type' => 'application/json',
+                ],
+            ]);
+
+            if (200 !== $response->getStatusCode()) {
+                // TODO : create and handle exception (300.. etc)
+                throw new \Exception($response->getBody()->getContents());
+            }
+
+            $responseContent = json_decode($response->getBody()->getContents(), true);
+
+            $this->authentication->setAccessToken($responseContent['access_token']);
+            $this->authentication->setRefreshToken($responseContent['refresh_token']);
+        } catch (ClientException $e) {
+            throw new \Exception($e->getMessage());
+        }
     }
 
     protected function isConnected()

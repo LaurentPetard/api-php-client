@@ -43,4 +43,48 @@ interface ClientInterface
      * @throws Exception
      */
     public function partialUpdateCategory($code, array $data);
+
+    /**
+     * @param string $code
+     *
+     * @throws Exception
+     *
+     * @return mixed
+     */
+    public function getAttribute($code);
+
+    /**
+     * @param array $options
+     *
+     * @throws Exception
+     *
+     * @return mixed
+     */
+    public function getAttributes(array $options = []);
+
+    /**
+     * @param array $data
+     *
+     * @throws Exception
+     */
+    public function createAttribute(array $data);
+
+    /**
+     * @param string $code
+     * @param array  $data
+     *
+     * @throws Exception
+     */
+    public function partialUpdateAttribute($code, array $data);
+
+    /**
+     * @param string $code
+     * @param array $filters
+     *
+     * @throws Exception
+     *
+     * @return mixed
+     */
+    public function getProduct($code, array $filters);
+
 }

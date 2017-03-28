@@ -13,14 +13,17 @@ class Route
 {
     const TOKEN = 'api/oauth/v1/token';
 
-    const GET_ATTRIBUTE = 'api/rest/v1/attributes/%s';
-    const GET_ATTRIBUTE_OPTION = 'api/rest/v1/attributes/%s/options/%s';
-    const GET_CHANNEL = 'api/rest/v1/channels/%s';
-    const GET_FAMILY = 'api/rest/v1/families/%s';
-    const GET_LOCALE = 'api/rest/v1/locales/%s';
+    const ATTRIBUTE = 'api/rest/v1/attributes/%s';
+    const ATTRIBUTES = 'api/rest/v1/attributes';
 
-    const GET_CATEGORY = 'api/rest/v1/categories/%s';
-    const GET_CATEGORIES = 'api/rest/v1/categories';
-    const POST_CATEGORY = 'api/rest/v1/categories';
-    const PATCH_CATEGORY = 'api/rest/v1/categories/%s';
+    const ATTRIBUTE_OPTION = 'api/rest/v1/attributes/%s/options/%s';
+    const CHANNEL = 'api/rest/v1/channels/%s';
+    const FAMILY = 'api/rest/v1/families/%s';
+    const LOCALE = 'api/rest/v1/locales/%s';
+
+    const CATEGORY = 'api/rest/v1/categories/%s';
+    const CATEGORIES = 'api/rest/v1/categories';
+
+    const PRODUCT = 'api/rest/v1/products/%s';
+    const PRODUCTS = 'api/rest/v1/products';
 }

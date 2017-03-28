@@ -85,47 +85,84 @@ class Client implements ClientInterface
     }
 
     /**
-     * @param string $code
-     *
-     * @return array
+     * {@inheritdoc}
      */
     public function getCategory($code)
     {
-        $url = sprintf(Route::GET_CATEGORY, urlencode($code));
+        $url = sprintf(Route::CATEGORY, urlencode($code));
 
         return $this->getResource($url);
     }
 
     /**
-     * @param array $parameters
-     *
-     * @return Paginator
+     * {@inheritdoc}
      */
     public function getCategories(array $parameters = [])
     {
-        return $this->getListResources(Route::GET_CATEGORIES, $parameters);
+        return $this->getListResources(Route::CATEGORIES, $parameters);
     }
 
     /**
-     * @param array $data
-     *
-     * @throws Exception
+     * {@inheritdoc}
      */
     public function createCategory(array $data)
     {
-        $this->createResource(Route::POST_CATEGORY, $data);
+        $this->createResource(Route::CATEGORIES, $data);
     }
 
     /**
-     * @param string $code
-     * @param array  $data
-     *
-     * @throws Exception
+     * {@inheritdoc}
      */
     public function partialUpdateCategory($code, array $data)
     {
-        $url = sprintf(Route::GET_CATEGORY, urlencode($code));
+        $url = sprintf(Route::CATEGORY, urlencode($code));
         $this->partialUpdateResource($url, $data);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getAttribute($code)
+    {
+        $url = sprintf(Route::ATTRIBUTE, urlencode($code));
+
+        return $this->getResource($url);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getAttributes(array $options = [])
+    {
+        return $this->getListResources(Route::ATTRIBUTES, $options);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function createAttribute(array $data)
+    {
+        $this->createResource(Route::ATTRIBUTES, $data);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function partialUpdateAttribute($code, array $data)
+    {
+        $url = sprintf(Route::ATTRIBUTE, urlencode($code));
+
+        $this->partialUpdateResource($url, $data);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getProduct($code, array $filters)
+    {
+        $url = sprintf(Route::PRODUCT, urlencode($code));
+
+        return $this->getResource($url);
     }
 
     /**

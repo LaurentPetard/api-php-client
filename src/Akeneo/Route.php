@@ -21,4 +21,6 @@ class Route
 
     const GET_CATEGORY = 'api/rest/v1/categories/%s';
     const GET_CATEGORIES = 'api/rest/v1/categories';
+    const POST_CATEGORY = 'api/rest/v1/categories';
+    const PATCH_CATEGORY = 'api/rest/v1/categories/%s';
 }

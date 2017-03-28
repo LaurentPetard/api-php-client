@@ -8,11 +8,13 @@ $auth = new \Akeneo\Authentication(
     'admin',
     'admin'
 );
-$client = new Akeneo\Client(
-    'http://pcd.dev/',
-    $auth
-);
+$clientBuilder = new \Akeneo\Client\ClientBuilder();
+$client = $clientBuilder->build('http://pcd.dev/', $auth);
 
 $content = $client->getCategory('master');
 
-var_dump($content);
+//var_dump($content);
+
+$content = $client->getCategories();
+
+var_dump($content->getSelfLink());

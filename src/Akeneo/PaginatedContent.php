@@ -53,4 +53,5 @@ class PaginatedContent implements \Iterator
         $this->page = 1;
     }
 
+
 }

@@ -55,6 +55,11 @@ class AkeneoPimClient implements AkeneoPimClientInterface
         $this->resourceClient->partialUpdateResource($url, $data);
     }
 
+    public function partialUpdateCategories(array $data)
+    {
+        $this->resourceClient->partialUpdateResources(Route::CATEGORIES, $data);
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -94,10 +99,66 @@ class AkeneoPimClient implements AkeneoPimClientInterface
     /**
      * {@inheritdoc}
      */
-    public function getProduct($code, array $filters)
+    public function getProduct($code)
     {
         $url = sprintf(Route::PRODUCT, urlencode($code));
 
         return $this->resourceClient->getResource($url);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getProducts(array $options = [])
+    {
+        return $this->resourceClient->getListResources(Route::PRODUCTS, $options);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getMediaFile($code)
+    {
+        $url = sprintf(Route::MEDIA_FILE, $code);
+
+        return $this->resourceClient->getResource($url);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getMediaFiles(array $options)
+    {
+        return $this->resourceClient->getListResources(Route::MEDIA_FILES, $options);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function downloadMediaFile($code, $targetFilePath)
+    {
+        $url = sprintf(Route::MEDIA_FILE_DOWNLOAD, $code);
+
+        $this->resourceClient->downloadResource($url, $targetFilePath);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function createMediaFile($sourceFilePath, array $mediaProductData)
+    {
+        $requestData = [
+            [
+                'name' => 'product',
+                'contents' => \GuzzleHttp\json_encode($mediaProductData),
+            ],
+            [
+                'name' => 'file',
+                // TODO : check file
+                'contents' => fopen($sourceFilePath, 'r'),
+            ]
+        ];
+
+        $this->resourceClient->performMultipartRequest(Route::MEDIA_FILES, $requestData);
     }
 }

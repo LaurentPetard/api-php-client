@@ -23,7 +23,7 @@ use Symfony\Component\Config\Definition\Exception\Exception;
 
 class ResourceClient
 {
-    const TIMEOUT = 5.0;
+    const TIMEOUT = -1;
 
     /* @var Authentication */
     protected $authentication;
@@ -55,6 +55,11 @@ class ResourceClient
      */
     public function getResource($url)
     {
+//        $request = new Request(HttpMethod::GET, $url, ['Authorization' => 'Bearer ' . $this->authentication->getAccessToken()]);
+//        $response = $this->guzzleClient->send($request);
+
+        $options[RequestOptions::HEADERS]['Authorization'] = 'Bearer ' . $this->authentication->getAccessToken();
+
         $response = $this->performAuthenticatedRequest(HttpMethod::GET, $url);
 
         if (200 !== $response->getStatusCode()) {
@@ -99,6 +104,23 @@ class ResourceClient
         }
     }
 
+    public function partialUpdateResources($url, array $resourcesData)
+    {
+        $body = '';
+        foreach ($resourcesData as $resourceData) {
+            $body .= \GuzzleHttp\json_encode($resourceData) . PHP_EOL;
+        }
+
+        $response = $this->performAuthenticatedRequest(HttpMethod::PATCH, $url, [
+            RequestOptions::HEADERS => ['Content-Type' => 'application/vnd.akeneo.collection+json'],
+            RequestOptions::BODY    => $body,
+        ]);
+
+        if (200 !== $response->getStatusCode()) {
+            throw new Exception($response->getStatusCode() . '--' . $response->getBody()->getContents());
+        }
+    }
+
     /**
      * @param string $url
      * @param array  $parameters
@@ -130,6 +152,22 @@ class ResourceClient
         return new Paginator($this, $page);
     }
 
+    /**
+     * @param string $url
+     * @param string $filePath
+     *
+     * @throws \Exception
+     */
+    public function downloadResource($url, $filePath)
+    {
+        $options = [RequestOptions::SINK => $filePath];
+
+        $response = $this->performAuthenticatedRequest(HttpMethod::GET, $url, $options);
+
+        if (200 !== $response->getStatusCode()) {
+            throw new Exception();
+        }
+    }
 
     /**
      * @param string $httpMethod
@@ -175,6 +213,19 @@ class ResourceClient
         return $response;
     }
 
+    public function performMultipartRequest($url, array $requestData)
+    {
+        $options = [
+            RequestOptions::HEADERS => ['Accept' => 'multipart/form-data'],
+            RequestOptions::MULTIPART => $requestData,
+
+        ];
+
+        $response = $this->performAuthenticatedRequest(HttpMethod::POST, $url, $options);
+
+        var_dump($response);
+    }
+
     /**
      * @throws \Exception
      */
@@ -194,7 +245,7 @@ class ResourceClient
                     $this->authentication->getSecret(),
                 ],
                 RequestOptions::HEADERS => [
-                    //'Cookie'     => 'XDEBUG_SESSION=PHPSTORM',
+//                    'Cookie'     => 'XDEBUG_SESSION=PHPSTORM',
                     'Content-Type' => 'application/json',
                 ],
             ]);

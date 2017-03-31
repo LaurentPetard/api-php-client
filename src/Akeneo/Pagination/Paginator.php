@@ -3,6 +3,7 @@
 namespace Akeneo\Pagination;
 
 use Akeneo\Client\ClientInterface;
+use Akeneo\Client\ResourceClient;
 use Akeneo\HttpMethod;
 
 /**
@@ -30,10 +31,10 @@ class Paginator implements \Iterator
     protected $totalIndex;
 
     /**
-     * @param ClientInterface $client
-     * @param Page            $currentPage
+     * @param ResourceClient $client
+     * @param Page           $currentPage
      */
-    public function __construct(ClientInterface $client, Page $currentPage)
+    public function __construct(ResourceClient $client, Page $currentPage)
     {
         $this->client = $client;
         $this->currentPage = $currentPage;
@@ -112,7 +113,7 @@ class Paginator implements \Iterator
      * Return the next page.
      */
     protected function getNextPage() {
-        $response = $this->client->doAuthenticatedRequest(HttpMethod::GET, $this->currentPage->getNextLink());
+        $response = $this->client->performAuthenticatedRequest(HttpMethod::GET, $this->currentPage->getNextLink());
         $body = json_decode($response->getBody()->getContents(), true);
 
         $nextLink = isset($body['_links']['next']['href']) ? $body['_links']['next']['href'] : null;

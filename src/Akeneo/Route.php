@@ -21,6 +21,10 @@ class Route
     const FAMILY = 'api/rest/v1/families/%s';
     const LOCALE = 'api/rest/v1/locales/%s';
 
+    const MEDIA_FILE = 'api/rest/v1/media-files/%s';
+    const MEDIA_FILES = 'api/rest/v1/media-files';
+    const MEDIA_FILE_DOWNLOAD = 'api/rest/v1/media-files/%s/download';
+
     const CATEGORY = 'api/rest/v1/categories/%s';
     const CATEGORIES = 'api/rest/v1/categories';
 

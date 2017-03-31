@@ -45,6 +45,13 @@ interface AkeneoPimClientInterface
     public function partialUpdateCategory($code, array $data);
 
     /**
+     * @param array $data
+     *
+     * @throws Exception
+     */
+    public function partialUpdateCategories(array $data);
+
+    /**
      * @param string $code
      *
      * @throws Exception
@@ -79,12 +86,54 @@ interface AkeneoPimClientInterface
 
     /**
      * @param string $code
-     * @param array $filters
      *
      * @throws Exception
      *
      * @return mixed
      */
-    public function getProduct($code, array $filters);
+    public function getProduct($code);
+
+    /**
+     * @param array $options
+     *
+     * @throws Exception
+     *
+     * @return mixed
+     */
+    public function getProducts(array $options);
+
+    /**
+     * @param string $code
+     *
+     * @throws Exception
+     *
+     * @return mixed
+     */
+    public function getMediaFile($code);
+
+    /**
+     * @param array $options
+     *
+     * @throws Exception
+     *
+     * @return mixed
+     */
+    public function getMediaFiles(array $options);
+
+    /**
+     * @param string $code
+     * @param string $targetTargetFilePath
+     *
+     * @throws Exception
+     */
+    public function downloadMediaFile($code, $targetTargetFilePath);
+
+    /**
+     * @param string $sourceFilePath
+     * @param array  $mediaProductData
+     *
+     * @throws Exception
+     */
+    public function createMediaFile($sourceFilePath, array $mediaProductData);
 
 }

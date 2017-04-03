@@ -1,6 +1,7 @@
 {
     "name": "laurentpetard/api-php-client",
     "description": "Akeneo API client",
+    "minimum-stability": "stable",
     "autoload": {
         "psr-4": {
             "": "src/"
@@ -8,10 +9,6 @@
     },
     "require": {
         "php": ">=5.5",
-        "guzzlehttp/guzzle": "^6.2",
-        "symfony/options-resolver": "^3.2",
-        "symfony/dependency-injection": "^3.2",
-        "symfony/yaml": "^3.2",
-        "symfony/config": "^3.2"
+        "guzzlehttp/guzzle": "^6.2"
     }
 }

@@ -1,4 +1,6 @@
 {
+    "name": "akeneo/api-php-client",
+    "description": "Akeneo API client",
     "autoload": {
         "psr-4": {
             "": "src/"

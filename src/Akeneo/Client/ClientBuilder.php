@@ -3,6 +3,9 @@
 namespace Akeneo\Client;
 
 use Akeneo\Authentication;
+use Akeneo\Guzzle\HttpClient;
+use GuzzleHttp\Client as GuzzleClient;
+use GuzzleHttp\RequestOptions;
 
 /**
  * Class ClientBuilder
@@ -13,6 +16,8 @@ use Akeneo\Authentication;
  */
 class ClientBuilder
 {
+    const TIMEOUT = -1;
+
     /**
      * @param string         $baseUri
      * @param Authentication $authentication
@@ -25,7 +30,14 @@ class ClientBuilder
         //$loader = new YamlFileLoader($container, new FileLocator(__DIR__ . '/Resources/config'));
         //$loader->load('config.yml');
 
-        $resourceClient = new ResourceClient($baseUri, $authentication);
+        $guzzleClient = new GuzzleClient([
+            'base_uri' => $baseUri,
+            RequestOptions::TIMEOUT  => static::TIMEOUT,
+        ]);
+
+        $httpClient = new HttpClient($guzzleClient);
+
+        $resourceClient = new ResourceClient($httpClient, $authentication);
 
         return new AkeneoPimClient($resourceClient);
     }

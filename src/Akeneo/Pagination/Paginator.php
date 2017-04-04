@@ -113,9 +113,9 @@ class Paginator implements \Iterator
      * Return the next page.
      */
     protected function getNextPage() {
-        $response = $this->client->performAuthenticatedRequest(HttpMethod::GET, $this->currentPage->getNextLink());
-        $body = json_decode($response->getBody()->getContents(), true);
+        $body = $this->client->getResource($this->currentPage->getNextLink());
 
+        // TODO: to refactor with ResourceClient::getListResources
         $nextLink = isset($body['_links']['next']['href']) ? $body['_links']['next']['href'] : null;
         $previousLink = isset($body['_links']['previous']['href']) ? $body['_links']['previous']['href'] : null;
         $selfLink= $body['_links']['self']['href'];

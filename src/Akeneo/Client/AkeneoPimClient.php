@@ -3,6 +3,8 @@
 namespace Akeneo\Client;
 
 use Akeneo\Route;
+use function GuzzleHttp\Psr7\stream_for;
+use GuzzleHttp\Stream\Stream;
 
 /**
  * Class AkeneoPimClient
@@ -55,7 +57,7 @@ class AkeneoPimClient implements AkeneoPimClientInterface
         $this->resourceClient->partialUpdateResource($url, $data);
     }
 
-    public function partialUpdateCategories(array $data)
+    public function partialUpdateCategories($data)
     {
         $this->resourceClient->partialUpdateResources(Route::CATEGORIES, $data);
     }

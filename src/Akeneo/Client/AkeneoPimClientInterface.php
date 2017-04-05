@@ -45,11 +45,11 @@ interface AkeneoPimClientInterface
     public function partialUpdateCategory($code, array $data);
 
     /**
-     * @param array $data
+     * @param array|\Traversable $data
      *
      * @throws Exception
      */
-    public function partialUpdateCategories(array $data);
+    public function partialUpdateCategories($data);
 
     /**
      * @param string $code

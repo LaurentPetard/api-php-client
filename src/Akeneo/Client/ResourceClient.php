@@ -55,9 +55,6 @@ class ResourceClient
      */
     public function getResource($url)
     {
-//        $request = new Request(HttpMethod::GET, $url, ['Authorization' => 'Bearer ' . $this->authentication->getAccessToken()]);
-//        $response = $this->guzzleClient->send($request);
-
         $options[RequestOptions::HEADERS]['Authorization'] = 'Bearer ' . $this->authentication->getAccessToken();
 
         $response = $this->performAuthenticatedRequest(HttpMethod::GET, $url);
@@ -104,16 +101,21 @@ class ResourceClient
         }
     }
 
-    public function partialUpdateResources($url, array $resourcesData)
+    public function partialUpdateResources($url, $resources)
     {
-        $body = '';
-        foreach ($resourcesData as $resourceData) {
-            $body .= \GuzzleHttp\json_encode($resourceData) . PHP_EOL;
+        if (!is_array($resources) && !$resources instanceof \Traversable) {
+            throw new \InvalidArgumentException('The parameter resourcesData must be an array or implements Traversable');
         }
+
+        $streamedBody = function() use($resources) {
+            foreach ($resources as $resourceData) {
+                yield json_encode($resourceData).PHP_EOL;
+            }
+        };
 
         $response = $this->performAuthenticatedRequest(HttpMethod::PATCH, $url, [
             RequestOptions::HEADERS => ['Content-Type' => 'application/vnd.akeneo.collection+json'],
-            RequestOptions::BODY    => $body,
+            RequestOptions::BODY    => $streamedBody(),
         ]);
 
         if (200 !== $response->getStatusCode()) {

@@ -46,8 +46,15 @@ class Category
      */
     public function getLabel($locale)
     {
-        //TODO throw exception for unexisting locale
         return isset($this->labels[$locale]) ? $this->labels[$locale] : null;
+    }
+
+    /**
+     * @return array
+     */
+    public function getLabels()
+    {
+        return $this->labels;
     }
 
     /**
@@ -62,35 +69,51 @@ class Category
 
     /**
      * @param string $code
+     *
+     * @return Category
      */
     public function setCode($code)
     {
         $this->code = $code;
+
+        return $this;
     }
 
     /**
      * @param string $parent
+     *
+     * @return Category
      */
     public function setParent($parent)
     {
         $this->parent = $parent;
+
+        return $this;
     }
 
     /**
      * @param string $locale
      * @param string $label
+     *
+     * @return Category
      */
     public function addLabel($locale, $label)
     {
         $this->labels[$locale] = $label;
+
+        return $this;
     }
 
     /**
-     * @param string $locale
-     * @param string $label
+     * @param $rel
+     * @param $url
+     *
+     * @return Category
      */
     public function addLink($rel, $url)
     {
         $this->links[$rel] = $url;
+
+        return $this;
     }
 }

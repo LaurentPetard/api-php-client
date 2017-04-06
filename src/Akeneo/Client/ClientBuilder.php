@@ -17,12 +17,25 @@ class ClientBuilder
      * @param string         $baseUri
      * @param Authentication $authentication
      *
-     * @return ClientInterface
+     * @return AkeneoPimClientInterface
      */
     public function build($baseUri, Authentication $authentication)
     {
         $resourceClient = new ResourceClient($baseUri, $authentication);
 
         return new AkeneoPimClient($resourceClient);
+    }
+
+    /**
+     * @param string         $baseUri
+     * @param Authentication $authentication
+     *
+     * @return AkeneoPimObjectClient
+     */
+    public function buildObjectClient($baseUri, Authentication $authentication)
+    {
+        $baseClient = $this->build($baseUri, $authentication);
+
+        return new AkeneoPimObjectClient($baseClient);
     }
 }

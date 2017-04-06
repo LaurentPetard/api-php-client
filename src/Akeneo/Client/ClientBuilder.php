@@ -17,16 +17,25 @@ class ClientBuilder
      * @param string         $baseUri
      * @param Authentication $authentication
      *
-     * @return ClientInterface
+     * @return AkeneoPimClientInterface
      */
     public function build($baseUri, Authentication $authentication)
     {
-        //$container = new ContainerBuilder();
-        //$loader = new YamlFileLoader($container, new FileLocator(__DIR__ . '/Resources/config'));
-        //$loader->load('config.yml');
-
         $resourceClient = new ResourceClient($baseUri, $authentication);
 
         return new AkeneoPimClient($resourceClient);
+    }
+
+    /**
+     * @param string         $baseUri
+     * @param Authentication $authentication
+     *
+     * @return AkeneoPimObjectClient
+     */
+    public function buildObjectClient($baseUri, Authentication $authentication)
+    {
+        $baseClient = $this->build($baseUri, $authentication);
+
+        return new AkeneoPimObjectClient($baseClient);
     }
 }

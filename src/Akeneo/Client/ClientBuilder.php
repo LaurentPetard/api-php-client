@@ -3,6 +3,13 @@
 namespace Akeneo\Client;
 
 use Akeneo\Authentication;
+use Akeneo\Denormalizer\CategoryDenormalizer;
+use Akeneo\Denormalizer\EntityDenormalizer;
+use Akeneo\Denormalizer\ProductDenormalizer;
+use Akeneo\Normalizer\CategoryNormalizer;
+use Akeneo\Normalizer\EntityNormalizer;
+use Akeneo\Normalizer\ProductNormalizer;
+use Akeneo\Normalizer\ProductValueNormalizer;
 
 /**
  * Class ClientBuilder
@@ -36,6 +43,34 @@ class ClientBuilder
     {
         $baseClient = $this->build($baseUri, $authentication);
 
-        return new AkeneoPimObjectClient($baseClient);
+        return new AkeneoPimObjectClient($baseClient, $this->buildEntityNormalizer(), $this->buildEntityDenormalizer());
+    }
+
+    /**
+     * @return EntityNormalizer
+     */
+    protected function buildEntityNormalizer()
+    {
+        $normalizer = new EntityNormalizer();
+        $normalizer
+            ->registerNormalizer(new CategoryNormalizer())
+            ->registerNormalizer(new ProductNormalizer(new ProductValueNormalizer()))
+        ;
+
+        return $normalizer;
+    }
+
+    /**
+     * @return EntityDenormalizer
+     */
+    public function buildEntityDenormalizer()
+    {
+        $denormalizer = new EntityDenormalizer();
+        $denormalizer
+            ->registerDenormalizer(new CategoryDenormalizer())
+            ->registerDenormalizer(new ProductDenormalizer())
+        ;
+
+        return $denormalizer;
     }
 }

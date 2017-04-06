@@ -2,11 +2,10 @@
 
 namespace Akeneo\Client;
 
-use Akeneo\Denormalizer\ProductDenormalizer;
+use Akeneo\Denormalizer\DenormalizerInterface;
+use Akeneo\Normalizer\NormalizerInterface;
 use Akeneo\Entities\Category;
-use Akeneo\Denormalizer\CategoryDenormalizer;
 use Akeneo\Entities\Product;
-use Akeneo\Normalizer\CategoryNormalizer;
 
 /**
  * This client class allows to request the API with OOP style.
@@ -24,12 +23,11 @@ class AkeneoPimObjectClient
 
     protected $denormalizer;
 
-    public function __construct(AkeneoPimClientInterface $client)
+    public function __construct(AkeneoPimClientInterface $client, NormalizerInterface $normalizer, DenormalizerInterface $denormalizer)
     {
         $this->client = $client;
-        $this->normalizer = new CategoryNormalizer();
-        $this->denormalizer = new CategoryDenormalizer();
-        $this->productDenormalizer = new ProductDenormalizer();
+        $this->normalizer = $normalizer;
+        $this->denormalizer = $denormalizer;
     }
 
     /**
@@ -92,6 +90,20 @@ class AkeneoPimObjectClient
     {
         $product = $this->client->getProduct($identifier);
 
-        return $this->productDenormalizer->denormalize($product, Product::class);
+        return $this->denormalizer->denormalize($product, Product::class);
+    }
+
+    public function createProduct(Product $product)
+    {
+        $productData = $this->normalizer->normalize($product);
+
+        $this->client->createProduct($productData);
+    }
+
+    public function partialUpdateProduct(Product $product)
+    {
+        $productData = $this->normalizer->normalize($product);
+
+        $this->client->partialUpdateProduct($product->getIdentifier(), $productData);
     }
 }

@@ -164,3 +164,6 @@ $category->setParent('master');
 $client->createCategory($category);
 
 $category = $client->getCategory($code);
+
+$product = $client->getProduct('AKNTS_BPS');
+var_dump($product->getFamily());

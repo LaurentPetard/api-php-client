@@ -64,7 +64,7 @@ class ProductValue
     /**
      * @return string
      */
-    public function getScope()
+    public function getChannel()
     {
         return $this->channel;
     }

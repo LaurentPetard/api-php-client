@@ -2,8 +2,10 @@
 
 namespace Akeneo\Client;
 
+use Akeneo\Denormalizer\ProductDenormalizer;
 use Akeneo\Entities\Category;
 use Akeneo\Denormalizer\CategoryDenormalizer;
+use Akeneo\Entities\Product;
 use Akeneo\Normalizer\CategoryNormalizer;
 
 /**
@@ -27,6 +29,7 @@ class AkeneoPimObjectClient
         $this->client = $client;
         $this->normalizer = new CategoryNormalizer();
         $this->denormalizer = new CategoryDenormalizer();
+        $this->productDenormalizer = new ProductDenormalizer();
     }
 
     /**
@@ -80,5 +83,15 @@ class AkeneoPimObjectClient
         }
 
         $this->client->partialUpdateCategory($normalizedCategories);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getProduct($identifier)
+    {
+        $product = $this->client->getProduct($identifier);
+
+        return $this->productDenormalizer->denormalize($product, Product::class);
     }
 }

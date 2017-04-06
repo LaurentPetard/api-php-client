@@ -262,7 +262,7 @@ class Product
             $this->deleteProductValue($attributeCode, $locale, $channel);
         }
 
-        $this->productValues[$attributeCode][] = new ProductValue($data, $locale, $channel);
+        $this->productValues[$attributeCode][] = new ProductValue($attributeCode, $data, $locale, $channel);
 
         return $this;
     }

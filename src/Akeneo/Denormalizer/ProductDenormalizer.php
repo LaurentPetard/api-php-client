@@ -3,6 +3,7 @@
 namespace Akeneo\Denormalizer;
 
 use Akeneo\Entities\Category;
+use Akeneo\Entities\Product;
 
 /**
  * Class ProductDenormalizer
@@ -20,22 +21,38 @@ class ProductDenormalizer implements DenormalizerInterface
      */
     public function denormalize($data, $type)
     {
-        $category = new Category();
-        $category
-            ->setCode($data['code'])
-            ->setParent($data['parent']);
+        $product = new Product();
+        $product
+            ->setFamily($data['family'])
+            ->setIdentifier($data['identifier'])
+            ->setVariantGroup($data['variant_group']);
 
-        if (isset($data['_links'])) {
-            foreach ($data['_links'] as $rel => $link) {
-                $category->addLink($rel, $data['_links'][$rel]['href']);
+        if (true === $data['enabled']) {
+            $product->enable();
+        } else {
+            $product->disable();
+        }
+
+        foreach($data['groups'] as $group) {
+            $product->addGroup($group);
+        }
+
+        foreach($data['categories'] as $category) {
+            $product->addCategory($category);
+        }
+
+        foreach ($data['values'] as $attributeCode => $productValues) {
+            foreach ($productValues as $productValue) {
+                $product->setProductValue(
+                    $attributeCode,
+                    $productValue['data'],
+                    $productValue['locale'],
+                    $productValue['scope']
+                );
             }
         }
 
-        foreach ($data['labels'] as $locale => $label) {
-            $category->addLabel($locale, $label);
-        }
-
-        return $category;
+        return $product;
     }
 
     /**
@@ -45,6 +62,6 @@ class ProductDenormalizer implements DenormalizerInterface
      */
     public function supportsNormalization($type)
     {
-        return Category::class === $type;
+        return Product::class === $type;
     }
 }

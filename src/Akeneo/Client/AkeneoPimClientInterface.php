@@ -85,13 +85,13 @@ interface AkeneoPimClientInterface
     public function partialUpdateAttribute($code, array $data);
 
     /**
-     * @param string $code
+     * @param string $identifier
      *
      * @throws Exception
      *
      * @return mixed
      */
-    public function getProduct($code);
+    public function getProduct($identifier);
 
     /**
      * @param array $options

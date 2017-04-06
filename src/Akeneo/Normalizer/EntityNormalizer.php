@@ -2,7 +2,6 @@
 
 namespace Akeneo\Normalizer;
 
-
 /**
  * Class EntityNormalizer
  *
@@ -17,6 +16,9 @@ class EntityNormalizer implements NormalizerInterface
      */
     protected $normalizers = [];
 
+    /**
+     * {@inheritdoc}
+     */
     public function normalize($object)
     {
         $normalizer = $this->getSupportedNormalizer($object);
@@ -28,6 +30,9 @@ class EntityNormalizer implements NormalizerInterface
         return $normalizer->normalize($object);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function supportsNormalization($object)
     {
         $normalizer = $this->getSupportedNormalizer($object);
@@ -35,6 +40,11 @@ class EntityNormalizer implements NormalizerInterface
         return $normalizer instanceof NormalizerInterface;
     }
 
+    /**
+     * @param NormalizerInterface $normalizer
+     *
+     * @return EntityNormalizer
+     */
     public function registerNormalizer(NormalizerInterface $normalizer)
     {
         $this->normalizers[] = $normalizer;
@@ -42,6 +52,11 @@ class EntityNormalizer implements NormalizerInterface
         return $this;
     }
 
+    /**
+     * @param mixed $object
+     *
+     * @return NormalizerInterface|null
+     */
     protected function getSupportedNormalizer($object)
     {
         foreach ($this->normalizers as $normalizer) {

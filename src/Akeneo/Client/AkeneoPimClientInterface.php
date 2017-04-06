@@ -2,6 +2,8 @@
 
 namespace Akeneo\Client;
 
+use Akeneo\Entities\Product;
+
 /**
  * Interface AkeneoPimClientInterface
  *
@@ -101,6 +103,21 @@ interface AkeneoPimClientInterface
      * @return mixed
      */
     public function getProducts(array $options);
+
+    /**
+     * @param array $data
+     *
+     * @throws Exception
+     */
+    public function createProduct(array $data);
+
+    /**
+     * @param string $code
+     * @param array  $data
+     *
+     * @throws Exception
+     */
+    public function partialUpdateProduct($code, array $data);
 
     /**
      * @param string $code

@@ -2,6 +2,7 @@
 
 namespace Akeneo\Client;
 
+use Akeneo\Entities\Product;
 use Akeneo\Route;
 use function GuzzleHttp\Psr7\stream_for;
 use GuzzleHttp\Stream\Stream;
@@ -114,6 +115,24 @@ class AkeneoPimClient implements AkeneoPimClientInterface
     public function getProducts(array $options = [])
     {
         return $this->resourceClient->getListResources(Route::PRODUCTS, $options);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function createProduct(array $data)
+    {
+        $this->resourceClient->createResource(Route::PRODUCTS, $data);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function partialUpdateProduct($code, array $data)
+    {
+        $url = sprintf(Route::PRODUCT, $code);
+
+        $this->resourceClient->partialUpdateResource($url, $data);
     }
 
     /**

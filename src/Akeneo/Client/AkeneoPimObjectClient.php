@@ -3,6 +3,7 @@
 namespace Akeneo\Client;
 
 use Akeneo\Denormalizer\DenormalizerInterface;
+use Akeneo\Entities\MediaFile;
 use Akeneo\Normalizer\NormalizerInterface;
 use Akeneo\Entities\Category;
 use Akeneo\Entities\Product;
@@ -128,6 +129,19 @@ class AkeneoPimObjectClient
         $product = $this->normalizer->normalize($product);
 
         $this->resourceClient->partialUpdateResource($url, $product);
+    }
+
+    /**
+     * @param $code
+     *
+     * @return MediaFile
+     */
+    public function getMediaFile($code)
+    {
+        $url = sprintf(Route::MEDIA_FILE, $code);
+        $mediaFile = $this->resourceClient->getResource($url);
+
+        return $this->denormalizer->denormalize($mediaFile, MediaFile::class);
     }
 
     /**

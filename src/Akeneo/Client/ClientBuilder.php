@@ -5,6 +5,7 @@ namespace Akeneo\Client;
 use Akeneo\Authentication;
 use Akeneo\Denormalizer\CategoryDenormalizer;
 use Akeneo\Denormalizer\EntityDenormalizer;
+use Akeneo\Denormalizer\MediaFileDenormalizer;
 use Akeneo\Denormalizer\ProductDenormalizer;
 use Akeneo\Normalizer\CategoryNormalizer;
 use Akeneo\Normalizer\EntityNormalizer;
@@ -75,6 +76,7 @@ class ClientBuilder
         $this->entityDernomalizer
             ->registerDenormalizer(new CategoryDenormalizer())
             ->registerDenormalizer(new ProductDenormalizer())
+            ->registerDenormalizer(new MediaFileDenormalizer())
         ;
 
         return $this->entityDernomalizer;

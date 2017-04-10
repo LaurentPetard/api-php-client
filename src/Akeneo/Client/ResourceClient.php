@@ -4,8 +4,6 @@ namespace Akeneo\Client;
 
 use Akeneo\Authentication;
 use Akeneo\HttpMethod;
-use Akeneo\Pagination\Page;
-use Akeneo\Pagination\Paginator;
 use Akeneo\Route;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\ClientException;
@@ -48,16 +46,20 @@ class ResourceClient
 
     /**
      * @param string $url
+     * @param array  $urlParameters
      *
      * @throws Exception
      *
      * @return array
      */
-    public function getResource($url)
+    public function getResource($url, array $urlParameters = [])
     {
-        $options[RequestOptions::HEADERS]['Authorization'] = 'Bearer ' . $this->authentication->getAccessToken();
+        $options = [];
+        if (!empty($urlParameters)) {
+            $options = [RequestOptions::QUERY => $urlParameters];
+        }
 
-        $response = $this->performAuthenticatedRequest(HttpMethod::GET, $url);
+        $response = $this->performAuthenticatedRequest(HttpMethod::GET, $url, $options);
 
         if (200 !== $response->getStatusCode()) {
             throw new Exception();
@@ -121,37 +123,6 @@ class ResourceClient
         if (200 !== $response->getStatusCode()) {
             throw new Exception($response->getStatusCode() . '--' . $response->getBody()->getContents());
         }
-    }
-
-    /**
-     * @param string $url
-     * @param array  $parameters
-     *
-     * @throws Exception
-     *
-     * @return Paginator
-     */
-    public function getListResources($url, array $parameters = [])
-    {
-        $options = [RequestOptions::QUERY => $parameters];
-
-        $response =  $this->performAuthenticatedRequest(HttpMethod::GET, $url, $options);
-
-        if (200 !== $response->getStatusCode()) {
-            throw new Exception();
-        }
-
-        $body = json_decode($response->getBody()->getContents(), true);
-
-        $nextLink = isset($body['_links']['next']['href']) ? $body['_links']['next']['href'] : null;
-        $previousLink = isset($body['_links']['previous']['href']) ? $body['_links']['previous']['href'] : null;
-        $selfLink= $body['_links']['self']['href'];
-        $firstLink= $body['_links']['first']['href'];
-        $items = $body['_embedded']['items'];
-
-        $page = new Page($selfLink, $firstLink, $previousLink, $nextLink, 1, $items);
-
-        return new Paginator($this, $page);
     }
 
     /**
@@ -223,9 +194,7 @@ class ResourceClient
 
         ];
 
-        $response = $this->performAuthenticatedRequest(HttpMethod::POST, $url, $options);
-
-        var_dump($response);
+        $this->performAuthenticatedRequest(HttpMethod::POST, $url, $options);
     }
 
     /**

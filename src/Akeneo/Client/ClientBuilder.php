@@ -10,6 +10,8 @@ use Akeneo\Normalizer\CategoryNormalizer;
 use Akeneo\Normalizer\EntityNormalizer;
 use Akeneo\Normalizer\ProductNormalizer;
 use Akeneo\Normalizer\ProductValueNormalizer;
+use Akeneo\Pagination\Factory\PageFactory;
+use Akeneo\Pagination\Factory\PaginatorFactory;
 
 /**
  * Class ClientBuilder
@@ -29,8 +31,9 @@ class ClientBuilder
     public function build($baseUri, Authentication $authentication)
     {
         $resourceClient = new ResourceClient($baseUri, $authentication);
+        $paginatorFactory = new PaginatorFactory($resourceClient, new PageFactory(new EntityDenormalizer()));
 
-        return new AkeneoPimClient($resourceClient);
+        return new AkeneoPimClient($resourceClient, $paginatorFactory);
     }
 
     /**
@@ -41,9 +44,12 @@ class ClientBuilder
      */
     public function buildObjectClient($baseUri, Authentication $authentication)
     {
-        $baseClient = $this->build($baseUri, $authentication);
+        $denormalizer = $this->buildEntityDenormalizer();
+        $normalizer =  $this->buildEntityNormalizer();
+        $resourceClient = new ResourceClient($baseUri, $authentication);
+        $paginatorFactory = new PaginatorFactory($resourceClient, new PageFactory($denormalizer));
 
-        return new AkeneoPimObjectClient($baseClient, $this->buildEntityNormalizer(), $this->buildEntityDenormalizer());
+        return new AkeneoPimObjectClient($resourceClient, $paginatorFactory, $normalizer, $denormalizer);
     }
 
     /**
@@ -63,14 +69,14 @@ class ClientBuilder
     /**
      * @return EntityDenormalizer
      */
-    public function buildEntityDenormalizer()
+    protected function buildEntityDenormalizer()
     {
-        $denormalizer = new EntityDenormalizer();
-        $denormalizer
+        $this->entityDernomalizer = new EntityDenormalizer();
+        $this->entityDernomalizer
             ->registerDenormalizer(new CategoryDenormalizer())
             ->registerDenormalizer(new ProductDenormalizer())
         ;
 
-        return $denormalizer;
+        return $this->entityDernomalizer;
     }
 }

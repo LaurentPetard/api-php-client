@@ -4,7 +4,7 @@ namespace Akeneo\Pagination;
 
 use Akeneo\Client\ClientInterface;
 use Akeneo\Client\ResourceClient;
-use Akeneo\HttpMethod;
+use Akeneo\Pagination\Factory\PageFactoryInterface;
 
 /**
  * Class Paginator
@@ -13,7 +13,7 @@ use Akeneo\HttpMethod;
  * @copyright 2017 Akeneo SAS (http://www.akeneo.com)
  * @license   http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-class Paginator implements \Iterator
+class Paginator implements PaginatorInterface
 {
     /** @var ClientInterface */
     protected $client;
@@ -30,17 +30,26 @@ class Paginator implements \Iterator
     /** @var int */
     protected $totalIndex;
 
+    /** @var PageFactory */
+    protected $pageFactory;
+
+    /** @var $entityType */
+    protected $entityType;
+
     /**
-     * @param ResourceClient $client
-     * @param Page           $currentPage
+     * @param ResourceClient       $client
+     * @param Page                 $firstPage
+     * @param PageFactoryInterface $pageFactory
      */
-    public function __construct(ResourceClient $client, Page $currentPage)
+    public function __construct(ResourceClient $client, Page $firstPage, PageFactoryInterface $pageFactory, $entityType)
     {
         $this->client = $client;
-        $this->currentPage = $currentPage;
-        $this->firstPage = $currentPage;
+        $this->currentPage = $firstPage;
+        $this->firstPage = $firstPage;
         $this->currentIndex = 0;
         $this->totalIndex = 0;
+        $this->pageFactory = $pageFactory;
+        $this->entityType = $entityType;
     }
 
     /**
@@ -112,18 +121,11 @@ class Paginator implements \Iterator
     /**
      * Return the next page.
      */
-    protected function getNextPage() {
-        $response = $this->client->performAuthenticatedRequest(HttpMethod::GET, $this->currentPage->getNextLink());
-        $body = json_decode($response->getBody()->getContents(), true);
+    protected function getNextPage()
+    {
+        $nextPageData = $this->client->getResource($this->currentPage->getNextLink());
+        $nextPageNumber = $this->currentPage->getPageNumber() + 1;
 
-        $nextLink = isset($body['_links']['next']['href']) ? $body['_links']['next']['href'] : null;
-        $previousLink = isset($body['_links']['previous']['href']) ? $body['_links']['previous']['href'] : null;
-        $selfLink= $body['_links']['self']['href'];
-        $firstLink= $body['_links']['first']['href'];
-        $items = $body['_embedded']['items'];
-
-        $pageNumber = $this->getCurrentPage()->getPageNumber() + 1;
-
-        return new Page($selfLink, $firstLink, $previousLink, $nextLink, $pageNumber, $items);
+        return $this->pageFactory->createPage($nextPageData, $nextPageNumber, $this->entityType);
     }
 }

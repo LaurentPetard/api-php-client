@@ -2,7 +2,7 @@
 
 namespace Akeneo\Client;
 
-use Akeneo\Entities\Product;
+use Akeneo\Pagination\Factory\PaginatorFactoryInterface;
 use Akeneo\Route;
 
 /**
@@ -14,11 +14,20 @@ use Akeneo\Route;
  */
 class AkeneoPimClient implements AkeneoPimClientInterface
 {
+    /** @var ResourceClient */
     protected $resourceClient;
 
-    public function __construct(ResourceClient $resourceClient)
+    /** @var  PaginatorFactoryInterface */
+    protected $paginatorFactory;
+
+    /**
+     * @param ResourceClient            $resourceClient
+     * @param PaginatorFactoryInterface $paginatorFactory
+     */
+    public function __construct(ResourceClient $resourceClient, PaginatorFactoryInterface $paginatorFactory)
     {
         $this->resourceClient = $resourceClient;
+        $this->paginatorFactory = $paginatorFactory;
     }
 
     /**
@@ -36,7 +45,7 @@ class AkeneoPimClient implements AkeneoPimClientInterface
      */
     public function getCategories(array $parameters = [])
     {
-        return $this->resourceClient->getListResources(Route::CATEGORIES, $parameters);
+        return $this->getPaginatedResources(Route::CATEGORIES, $parameters);
     }
 
     /**
@@ -76,7 +85,7 @@ class AkeneoPimClient implements AkeneoPimClientInterface
      */
     public function getAttributes(array $options = [])
     {
-        return $this->resourceClient->getListResources(Route::ATTRIBUTES, $options);
+        return $this->getPaginatedResources(Route::ATTRIBUTES, $options);
     }
 
     /**
@@ -112,7 +121,7 @@ class AkeneoPimClient implements AkeneoPimClientInterface
      */
     public function getProducts(array $options = [])
     {
-        return $this->resourceClient->getListResources(Route::PRODUCTS, $options);
+        return $this->getPaginatedResources(Route::PRODUCTS, $options);
     }
 
     /**
@@ -148,7 +157,7 @@ class AkeneoPimClient implements AkeneoPimClientInterface
      */
     public function getMediaFiles(array $options)
     {
-        return $this->resourceClient->getListResources(Route::MEDIA_FILES, $options);
+        return $this->getPaginatedResources(Route::MEDIA_FILES, $options);
     }
 
     /**
@@ -179,5 +188,18 @@ class AkeneoPimClient implements AkeneoPimClientInterface
         ];
 
         $this->resourceClient->performMultipartRequest(Route::MEDIA_FILES, $requestData);
+    }
+
+    /**
+     * @param string $url
+     * @param array  $options
+     *
+     * @return \Akeneo\Pagination\PaginatorInterface
+     */
+    protected function getPaginatedResources($url, array $options)
+    {
+        $resourcesData = $this->resourceClient->getResource($url, $options);
+
+        return $this->paginatorFactory->createPaginator($resourcesData);
     }
 }

@@ -107,8 +107,10 @@ class ResourceClient
         }
 
         $streamedBody = function() use($resources) {
+            $isFirstLine = true;
             foreach ($resources as $resourceData) {
-                yield json_encode($resourceData).PHP_EOL;
+                yield ($isFirstLine ? '' : PHP_EOL).\GuzzleHttp\json_encode($resourceData);
+                $isFirstLine = false;
             }
         };
 

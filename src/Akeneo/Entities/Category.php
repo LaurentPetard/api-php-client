@@ -11,24 +11,20 @@ namespace Akeneo\Entities;
  */
 class Category
 {
-    /** @var string */
-    protected $code;
-
-    /** @var string */
-    protected $parent;
-
     /** @var array */
-    protected $labels;
+    protected $properties;
 
-    /** @var array */
-    protected $links;
+    public function __construct(array $properties = [])
+    {
+        $this->properties = $properties;
+    }
 
     /**
      * @return string
      */
     public function getCode()
     {
-        return $this->code;
+        return $this->getProperty('code');
     }
 
     /**
@@ -36,7 +32,7 @@ class Category
      */
     public function getParent()
     {
-        return $this->parent;
+        return $this->getProperty('parent');
     }
 
     /**
@@ -46,7 +42,7 @@ class Category
      */
     public function getLabel($locale)
     {
-        return isset($this->labels[$locale]) ? $this->labels[$locale] : null;
+        return isset($this->properties['labels'][$locale]) ? $this->properties['labels'][$locale] : null;
     }
 
     /**
@@ -54,7 +50,7 @@ class Category
      */
     public function getLabels()
     {
-        return $this->labels;
+        return $this->getProperty('labels');
     }
 
     /**
@@ -64,7 +60,7 @@ class Category
      */
     public function getLink($linkName)
     {
-        return isset($this->links[$linkName]) ? $this->links[$linkName] : null;
+        return isset($this->properties['_links'][$linkName]) ? $this->properties['_links'][$linkName] : null;
     }
 
     /**
@@ -74,7 +70,7 @@ class Category
      */
     public function setCode($code)
     {
-        $this->code = $code;
+        $this->properties['code'] = $code;
 
         return $this;
     }
@@ -86,7 +82,7 @@ class Category
      */
     public function setParent($parent)
     {
-        $this->parent = $parent;
+        $this->properties['parent'] = $parent;
 
         return $this;
     }
@@ -99,21 +95,37 @@ class Category
      */
     public function addLabel($locale, $label)
     {
-        $this->labels[$locale] = $label;
+        if (!isset($this->properties['labels'])) {
+            $this->properties['labels'] = [];
+        }
+
+        $this->properties['labels'][$locale] = $label;
 
         return $this;
     }
 
-    /**
-     * @param $rel
-     * @param $url
-     *
-     * @return Category
-     */
-    public function addLink($rel, $url)
+    public function toArray()
     {
-        $this->links[$rel] = $url;
+        $properties = $this->properties;
 
-        return $this;
+        if (isset($properties['_links'])) {
+            unset($properties['_links']);
+        }
+
+        return $properties;
+    }
+
+    /**
+     * @param string $property
+     *
+     * @return mixed|null
+     */
+    protected function getProperty($property)
+    {
+        if(array_key_exists($property, $this->properties)) {
+            return $this->properties[$property];
+        }
+
+        return null;
     }
 }

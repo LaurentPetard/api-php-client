@@ -20,22 +20,7 @@ class CategoryDenormalizer implements DenormalizerInterface
      */
     public function denormalize($data, $type)
     {
-        $category = new Category();
-        $category
-            ->setCode($data['code'])
-            ->setParent($data['parent']);
-
-        if (isset($data['_links'])) {
-            foreach ($data['_links'] as $rel => $link) {
-                $category->addLink($rel, $data['_links'][$rel]['href']);
-            }
-        }
-
-        foreach ($data['labels'] as $locale => $label) {
-            $category->addLabel($locale, $label);
-        }
-
-        return $category;
+        return new Category($data);
     }
 
     /**

@@ -2,8 +2,6 @@
 
 namespace Akeneo\Entities;
 
-use Doctrine\Instantiator\Exception\InvalidArgumentException;
-
 /**
  * Class Product
  *
@@ -13,34 +11,20 @@ use Doctrine\Instantiator\Exception\InvalidArgumentException;
  */
 class Product
 {
-    /** @var string */
-    protected $identifier;
-
-    /** @var string */
-    protected $family;
-
-    /** @var string[] */
-    protected $groups = [];
-
-    /** @var string */
-    protected $variantGroup;
-
-    /** @var string[] */
-    protected $categories = [];
-
-    /** @var boolean */
-    protected $enabled = true;
-
     /** @var array */
-    protected $productValues = [];
+    protected $properties;
 
+    public function __construct(array $properties = [])
+    {
+        $this->properties = $properties;
+    }
 
     /**
      * @return string
      */
     public function getIdentifier()
     {
-        return $this->identifier;
+        return $this->getProperty('identifier');
     }
 
     /**
@@ -48,7 +32,7 @@ class Product
      */
     public function getFamily()
     {
-        return $this->family;
+        return $this->getProperty('family');
     }
 
     /**
@@ -56,7 +40,7 @@ class Product
      */
     public function getGroups()
     {
-        return $this->groups;
+        return $this->getProperty('groups', []);
     }
 
     /**
@@ -64,7 +48,7 @@ class Product
      */
     public function getVariantGroup()
     {
-        return $this->variantGroup;
+        return $this->getProperty('variantGroup');
     }
 
     /**
@@ -72,7 +56,7 @@ class Product
      */
     public function getCategories()
     {
-        return $this->categories;
+        return $this->getProperty('categories', []);
     }
 
     /**
@@ -80,23 +64,27 @@ class Product
      */
     public function isEnabled()
     {
-        return $this->enabled;
+        return $this->getProperty('enabled', false);
     }
 
     /**
-     * @return array
+     * @param string|null $attributeCode
+     *
+     * @return mixed
      */
     public function getProductValues($attributeCode = null)
     {
+        $productValues = $this->getProperty('values', []);
+
         if (null === $attributeCode) {
-            return $this->productValues;
+            return $productValues;
         }
 
-        if (!isset($this->productValues[$attributeCode])) {
-            throw new InvalidArgumentException(sprintf('There is not any product value for the attribute code "%s".', $attributeCode));
+        if (!isset($productValues[$attributeCode])) {
+            throw new \InvalidArgumentException(sprintf('There is not any product value for the attribute code "%s".', $attributeCode));
         }
 
-        return $this->productValues[$attributeCode];
+        return $productValues[$attributeCode];
     }
 
     /**
@@ -111,7 +99,7 @@ class Product
         });
 
         if (1 !== count($productValue)) {
-            throw new InvalidArgumentException(
+            throw new \InvalidArgumentException(
                 sprintf(
                     'There is 0 or more than one product value for the attribute "%s", locale "%s" and channel "%s".',
                     $attributeCode,
@@ -129,7 +117,7 @@ class Product
      */
     public function hasProductValues($attributeCode)
     {
-        return isset($this->productValues[$attributeCode]) && count($this->productValues[$attributeCode]) > 0;
+        return isset($this->properties['values'][$attributeCode]) && count($this->properties['values'][$attributeCode]) > 0;
     }
 
     /**
@@ -137,11 +125,11 @@ class Product
      */
     public function hasProductValue($attributeCode, $locale = null, $channel = null)
     {
-        if (!isset($this->productValues[$attributeCode])) {
+        if (!isset($this->properties['values'][$attributeCode])) {
             return false;
         }
 
-        $productValues = $this->productValues[$attributeCode];
+        $productValues = $this->properties['values'][$attributeCode];
 
         foreach ($productValues as $productValue) {
             if ($locale === $productValue->getLocale() && $channel === $productValue->getChannel()) {
@@ -157,7 +145,7 @@ class Product
      */
     public function setIdentifier($identifier)
     {
-        $this->identifier = $identifier;
+        $this->properties['identifier'] = $identifier;
 
         return $this;
     }
@@ -167,7 +155,7 @@ class Product
      */
     public function setFamily($family)
     {
-        $this->family = $family;
+        $this->properties['family'] = $family;
 
         return $this;
     }
@@ -177,8 +165,12 @@ class Product
      */
     public function addGroup($group)
     {
-        if (!in_array($group, $this->groups)) {
-            $this->groups[] = $group;
+        if (!isset($this->properties['groups'])) {
+            $this->properties['groups'] = [];
+        }
+
+        if (!in_array($group, $this->properties['groups'])) {
+            $this->properties['groups'][] = $group;
         }
 
         return $this;
@@ -189,9 +181,13 @@ class Product
      */
     public function deleteGroup($group)
     {
-        $index = array_search($group, $this->groups);
+        if (!isset($this->properties['groups'])) {
+            return $this;
+        }
+
+        $index = array_search($group, $this->properties['groups']);
         if (false !== $index) {
-            unset($this->groups[$index]);
+            unset($this->properties['groups'][$index]);
         }
 
         return $this;
@@ -202,7 +198,7 @@ class Product
      */
     public function setVariantGroup($variantGroup)
     {
-        $this->variantGroup = $variantGroup;
+        $this->properties['variant_group'] = $variantGroup;
 
         return $this;
     }
@@ -212,8 +208,12 @@ class Product
      */
     public function addCategory($category)
     {
-        if (!in_array($category, $this->categories)) {
-            $this->categories[] = $category;
+        if(!isset($this->properties['categories'])) {
+            $this->properties['categories'] = [];
+        }
+
+        if (!in_array($category, $this->properties['categories'])) {
+            $this->properties['categories'][] = $category;
         }
 
         return $this;
@@ -224,9 +224,13 @@ class Product
      */
     public function deleteCategory($category)
     {
-        $index = array_search($category, $this->categories);
+        if(!isset($this->properties['categories'])) {
+            return $this;
+        }
+
+        $index = array_search($category, $this->properties['categories']);
         if (false !== $index) {
-            unset($this->categories[$index]);
+            unset($this->properties['categories'][$index]);
         }
 
         return $this;
@@ -234,14 +238,14 @@ class Product
 
     public function enable()
     {
-        $this->enabled = true;
+        $this->properties['enabled'] = true;
 
         return $this;
     }
 
     public function disable()
     {
-        $this->enabled = false;
+        $this->properties['enabled'] = false;
 
         return $this;
     }
@@ -262,27 +266,61 @@ class Product
             $this->deleteProductValue($attributeCode, $locale, $channel);
         }
 
-        $this->productValues[$attributeCode][] = new ProductValue($attributeCode, $data, $locale, $channel);
+        if (!isset($this->properties['values'][$attributeCode])) {
+            $this->properties['values'][$attributeCode] = [];
+        }
+
+        $this->properties['values'][$attributeCode][] = new ProductValue($attributeCode, $data, $locale, $channel);
 
         return $this;
     }
 
     public function deleteProductValue($attributeCode, $locale = null, $channel = null)
     {
-        if (isset($this->productValues[$attributeCode])) {
+        if (!isset($this->properties['values'][$attributeCode])) {
             return $this;
         }
 
-        $productValues = $this->productValues[$attributeCode];
+        $productValues = $this->properties['values'][$attributeCode];
 
         foreach ($productValues as $key => $productValue) {
             if ($locale === $productValue->getLocale() && $channel === $productValue->getChannel()) {
-                unset($this->productValues[$attributeCode][$key]);
+                unset($this->properties['values'][$attributeCode][$key]);
 
                 return $this;
             }
         }
 
         return $this;
+    }
+
+    public function toArray()
+    {
+        $arrayProduct = $this->properties;
+
+        if(isset($arrayProduct['values'])) {
+            $arrayProduct['values'] = array_map(function($productValues) {
+                return array_map(function($productValue) {
+                    return $productValue->toArray();
+                }, $productValues);
+            }, $arrayProduct['values']);
+        }
+
+        return $arrayProduct;
+    }
+
+    /**
+     * @param string $property
+     * @param mixed  $defaultValue
+     *
+     * @return mixed
+     */
+    protected function getProperty($property, $defaultValue = null)
+    {
+        if(array_key_exists($property, $this->properties)) {
+            return $this->properties[$property];
+        }
+
+        return $defaultValue;
     }
 }

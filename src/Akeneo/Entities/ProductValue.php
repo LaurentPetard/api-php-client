@@ -76,4 +76,13 @@ class ProductValue
     {
         return $this->data;
     }
+
+    public function toArray()
+    {
+        return [
+            'locale' => $this->locale,
+            'scope'  => $this->channel,
+            'data'   => $this->data,
+        ];
+    }
 }

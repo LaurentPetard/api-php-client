@@ -76,9 +76,7 @@ class AkeneoPimObjectClient
      */
     public function createCategory(Category $category)
     {
-        $category = $this->normalizer->normalize($category);
-
-        $this->resourceClient->createResource(Route::CATEGORIES, $category);
+        $this->resourceClient->createResource(Route::CATEGORIES, $category->toArray());
     }
 
     /**
@@ -87,9 +85,8 @@ class AkeneoPimObjectClient
     public function partialUpdateCategory(Category $category)
     {
         $url = sprintf(Route::CATEGORY, urlencode($category->getCode()));
-        $category = $this->categoryNormalizer->normalize($category);
 
-        $this->resourceClient->partialUpdateResource($url, $category);
+        $this->resourceClient->partialUpdateResource($url, $category->toArray());
     }
 
     /**
@@ -99,7 +96,7 @@ class AkeneoPimObjectClient
     {
         $normalizedCategories = [];
         foreach ($categories as $category) {
-            $normalizedCategories[] = $this->categoryNormalizer->normalize($category);
+            $normalizedCategories[] = $category->toArray();
         }
 
         $this->resourceClient->partialUpdateResources(Route::CATEGORIES, $normalizedCategories);
@@ -118,17 +115,14 @@ class AkeneoPimObjectClient
 
     public function createProduct(Product $product)
     {
-        $product = $this->normalizer->normalize($product);
-
-        $this->resourceClient->createResource(Route::PRODUCTS, $product);
+        $this->resourceClient->createResource(Route::PRODUCTS, $product->toArray());
     }
 
     public function partialUpdateProduct(Product $product)
     {
         $url = sprintf(Route::PRODUCT, $product->getIdentifier());
-        $product = $this->normalizer->normalize($product);
 
-        $this->resourceClient->partialUpdateResource($url, $product);
+        $this->resourceClient->partialUpdateResource($url, $product->toArray());
     }
 
     /**

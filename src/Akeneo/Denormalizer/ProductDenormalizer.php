@@ -21,27 +21,12 @@ class ProductDenormalizer implements DenormalizerInterface
      */
     public function denormalize($data, $type)
     {
-        $product = new Product();
-        $product
-            ->setFamily($data['family'])
-            ->setIdentifier($data['identifier'])
-            ->setVariantGroup($data['variant_group']);
+        $attributeProductValues = $data['values'];
+        unset($data['values']);
 
-        if (true === $data['enabled']) {
-            $product->enable();
-        } else {
-            $product->disable();
-        }
+        $product = new Product($data);
 
-        foreach($data['groups'] as $group) {
-            $product->addGroup($group);
-        }
-
-        foreach($data['categories'] as $category) {
-            $product->addCategory($category);
-        }
-
-        foreach ($data['values'] as $attributeCode => $productValues) {
+        foreach ($attributeProductValues as $attributeCode => $productValues) {
             foreach ($productValues as $productValue) {
                 $product->setProductValue(
                     $attributeCode,

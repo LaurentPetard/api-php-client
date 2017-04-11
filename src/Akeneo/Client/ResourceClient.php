@@ -93,6 +93,8 @@ class ResourceClient
      */
     public function partialUpdateResource($url, array $data)
     {
+        var_dump($url, $data);die;
+
         $response = $this->performAuthenticatedRequest(HttpMethod::PATCH, $url, [
             RequestOptions::HEADERS => ['Content-Type' => 'application/json'],
             RequestOptions::JSON    => $data,

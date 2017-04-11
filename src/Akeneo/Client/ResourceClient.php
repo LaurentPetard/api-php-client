@@ -34,14 +34,11 @@ class ResourceClient
      * @param                $baseUri
      * @param Authentication $authentication
      */
-    public function __construct($baseUri, Authentication $authentication)
+    public function __construct(Authentication $authentication, GuzzleClient $guzzleClient)
     {
         $this->authentication = $authentication;
 
-        $this->guzzleClient = new GuzzleClient([
-            'base_uri' => $baseUri,
-            RequestOptions::TIMEOUT  => static::TIMEOUT,
-        ]);
+        $this->guzzleClient = $guzzleClient;
     }
 
     /**
@@ -98,7 +95,7 @@ class ResourceClient
             RequestOptions::JSON    => $data,
         ]);
 
-        if (204 !== $response->getStatusCode() && 201 !== $response->getStatusCode()) {
+        if (in_array($response->getStatusCode(), [200, 201])) {
             throw new Exception($response->getStatusCode() . '--' . $response->getBody()->getContents());
         }
     }
@@ -120,8 +117,8 @@ class ResourceClient
             RequestOptions::BODY    => $streamedBody(),
         ]);
 
-        if (200 !== $response->getStatusCode()) {
-            throw new Exception($response->getStatusCode() . '--' . $response->getBody()->getContents());
+        if (!in_array($response->getStatusCode(), [200, 201])) {
+            throw new \Exception($response->getStatusCode() . '--' . $response->getBody()->getContents());
         }
     }
 

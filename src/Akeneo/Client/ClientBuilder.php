@@ -11,6 +11,8 @@ use Akeneo\Normalizer\CategoryNormalizer;
 use Akeneo\Normalizer\EntityNormalizer;
 use Akeneo\Normalizer\ProductNormalizer;
 use Akeneo\Normalizer\ProductValueNormalizer;
+use GuzzleHttp\Client;
+use GuzzleHttp\RequestOptions;
 use Akeneo\Pagination\Factory\PageFactory;
 use Akeneo\Pagination\Factory\PaginatorFactory;
 
@@ -23,31 +25,44 @@ use Akeneo\Pagination\Factory\PaginatorFactory;
  */
 class ClientBuilder
 {
+    const TIMEOUT = -1;
+
+    /** @var string */
+    protected $baseUri;
+
+    /** @var Authentication */
+    protected $authentication;
+
     /**
      * @param string         $baseUri
      * @param Authentication $authentication
-     *
+     */
+    public function __construct($baseUri, Authentication $authentication)
+    {
+        $this->baseUri = $baseUri;
+        $this->authentication = $authentication;
+    }
+
+    /**
      * @return AkeneoPimClientInterface
      */
-    public function build($baseUri, Authentication $authentication)
+    public function build()
     {
-        $resourceClient = new ResourceClient($baseUri, $authentication);
+        $resourceClient = $this->createResourceClient();
         $paginatorFactory = new PaginatorFactory($resourceClient, new PageFactory(new EntityDenormalizer()));
+
 
         return new AkeneoPimClient($resourceClient, $paginatorFactory);
     }
 
     /**
-     * @param string         $baseUri
-     * @param Authentication $authentication
-     *
      * @return AkeneoPimObjectClient
      */
-    public function buildObjectClient($baseUri, Authentication $authentication)
+    public function buildObjectClient()
     {
         $denormalizer = $this->buildEntityDenormalizer();
-        $normalizer =  $this->buildEntityNormalizer();
-        $resourceClient = new ResourceClient($baseUri, $authentication);
+        $normalizer = $this->buildEntityNormalizer();
+        $resourceClient = $this->createResourceClient();
         $paginatorFactory = new PaginatorFactory($resourceClient, new PageFactory($denormalizer));
 
         return new AkeneoPimObjectClient($resourceClient, $paginatorFactory, $normalizer, $denormalizer);
@@ -80,5 +95,15 @@ class ClientBuilder
         ;
 
         return $this->entityDernomalizer;
+    }
+
+    protected function createResourceClient()
+    {
+        $guzzleClient = new Client([
+            'base_uri' => $this->baseUri,
+            RequestOptions::TIMEOUT  => static::TIMEOUT,
+        ]);
+
+        return new ResourceClient($this->authentication, $guzzleClient);
     }
 }

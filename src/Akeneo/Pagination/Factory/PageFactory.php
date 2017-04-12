@@ -14,33 +14,16 @@ use Akeneo\Pagination\Page;
  */
 class PageFactory implements PageFactoryInterface
 {
-    /** @var DenormalizerInterface */
-    protected $denormalizer;
-
-    /**
-     * @param DenormalizerInterface $denormalizer
-     */
-    public function __construct(DenormalizerInterface $denormalizer)
-    {
-        $this->denormalizer = $denormalizer;
-    }
-
     /**
      * {@inheritdoc}
      */
-    public function createPage(array $data, $pageNumber, $entityType = null)
+    public function createPage(array $data, $pageNumber)
     {
         $nextLink = isset($data['_links']['next']['href']) ? $data['_links']['next']['href'] : null;
         $previousLink = isset($data['_links']['previous']['href']) ? $data['_links']['previous']['href'] : null;
         $selfLink = $data['_links']['self']['href'];
         $firstLink = $data['_links']['first']['href'];
         $items = $data['_embedded']['items'];
-
-        if (null !== $entityType) {
-            foreach ($items as $index => $item) {
-                $items[$index] = $this->denormalizer->denormalize($item, $entityType);
-            }
-        }
 
         return new Page($selfLink, $firstLink, $previousLink, $nextLink, $pageNumber, $items);
     }

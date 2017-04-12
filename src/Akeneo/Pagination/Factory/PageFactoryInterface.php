@@ -12,11 +12,10 @@ namespace Akeneo\Pagination\Factory;
 interface PageFactoryInterface
 {
     /**
-     * @param array       $data
-     * @param int         $pageNumber
-     * @param string|null $entityType
+     * @param array $data
+     * @param int   $pageNumber
      *
      * @return Page
      */
-    public function createPage(array $data, $pageNumber, $entityType = null);
+    public function createPage(array $data, $pageNumber);
 }

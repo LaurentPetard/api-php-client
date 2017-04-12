@@ -15,9 +15,8 @@ interface PaginatorFactoryInterface
 {
     /**
      * @param array        $firstPageData
-     * @param string|null  $entityType
      *
      * @return PaginatorInterface
      */
-    public function createPaginator(array $firstPageData, $entityType = null);
+    public function createPaginator(array $firstPageData);
 }

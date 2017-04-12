@@ -46,7 +46,7 @@ JSON;
 
 
         $history = $clientMocker->getHistory()[1];
-        $this->assertSame($expectedRequest, $history['doAuthenticatedRequest']->getBody()->getContents());
+        $this->assertSame($expectedRequest, $history['request']->getBody()->getContents());
         $this->assertSame(200, $history['response']->getStatusCode());
         $this->assertSame($responseBody, $history['response']->getBody()->getContents());
     }
@@ -71,7 +71,7 @@ JSON;
         $expectedRequest = json_encode($category);
 
         $history = $clientMocker->getHistory()[1];
-        $this->assertSame($expectedRequest, $history['doAuthenticatedRequest']->getBody()->getContents());
+        $this->assertSame($expectedRequest, $history['request']->getBody()->getContents());
         $this->assertSame(204, $history['response']->getStatusCode());
         $this->assertSame('', $history['response']->getBody()->getContents());
     }
@@ -99,8 +99,8 @@ JSON;
         $response = $clientMocker->getClient()->getCategory('tvs_projectors');
 
         $history = $clientMocker->getHistory()[1];
-        $this->assertSame('GET', $history['doAuthenticatedRequest']->getMethod());
-        $this->assertSame('/api/rest/v1/categories/tvs_projectors', $history['doAuthenticatedRequest']->getRequestTarget());
+        $this->assertSame('GET', $history['request']->getMethod());
+        $this->assertSame('/api/rest/v1/categories/tvs_projectors', $history['request']->getRequestTarget());
         $this->assertSame(200, $history['response']->getStatusCode());
         $this->assertSame($expectedResponse, $response);
     }

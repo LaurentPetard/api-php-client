@@ -4,14 +4,11 @@ namespace Akeneo\tests;
 
 use Akeneo\Authentication;
 use Akeneo\Client\AkeneoPimClientInterface;
-use Akeneo\Client\ResourceClient;
 use GuzzleHttp\Client;
-use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\RequestOptions;
-use Psr\Http\Message\ResponseInterface;
 
 /**
  * Client mocker aims to create a guzzle client with mock responses .
@@ -78,10 +75,14 @@ class ClientMocker
      */
     public function getHistory()
     {
-        foreach ($this->history as $message) {
-            $message['doAuthenticatedRequest']->getBody()->rewind();
-            $message['response']->getBody()->rewind();
-        }
+            foreach ($this->history as $message) {
+                try {
+                    $message['request']->getBody()->rewind();
+                } catch (\RuntimeException $e) {
+
+                }
+                $message['response']->getBody()->rewind();
+            }
 
         return $this->history;
     }

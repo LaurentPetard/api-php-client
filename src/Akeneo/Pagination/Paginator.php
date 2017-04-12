@@ -30,18 +30,15 @@ class Paginator implements PaginatorInterface
     /** @var int */
     protected $totalIndex;
 
-    /** @var PageFactory */
+    /** @var PageFactoryInterface */
     protected $pageFactory;
-
-    /** @var $entityType */
-    protected $entityType;
 
     /**
      * @param ResourceClient       $client
-     * @param Page                 $firstPage
      * @param PageFactoryInterface $pageFactory
+     * @param Page                 $firstPage
      */
-    public function __construct(ResourceClient $client, Page $firstPage, PageFactoryInterface $pageFactory, $entityType)
+    public function __construct(ResourceClient $client, PageFactoryInterface $pageFactory, Page $firstPage)
     {
         $this->client = $client;
         $this->currentPage = $firstPage;
@@ -49,7 +46,6 @@ class Paginator implements PaginatorInterface
         $this->currentIndex = 0;
         $this->totalIndex = 0;
         $this->pageFactory = $pageFactory;
-        $this->entityType = $entityType;
     }
 
     /**
@@ -126,6 +122,6 @@ class Paginator implements PaginatorInterface
         $nextPageData = $this->client->getResource($this->currentPage->getNextLink());
         $nextPageNumber = $this->currentPage->getPageNumber() + 1;
 
-        return $this->pageFactory->createPage($nextPageData, $nextPageNumber, $this->entityType);
+        return $this->pageFactory->createPage($nextPageData, $nextPageNumber);
     }
 }

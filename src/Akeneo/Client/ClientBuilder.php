@@ -49,52 +49,10 @@ class ClientBuilder
     public function build()
     {
         $resourceClient = $this->createResourceClient();
-        $paginatorFactory = new PaginatorFactory($resourceClient, new PageFactory(new EntityDenormalizer()));
+        $paginatorFactory = new PaginatorFactory($resourceClient, new PageFactory());
 
 
         return new AkeneoPimClient($resourceClient, $paginatorFactory);
-    }
-
-    /**
-     * @return AkeneoPimObjectClient
-     */
-    public function buildObjectClient()
-    {
-        $denormalizer = $this->buildEntityDenormalizer();
-        $normalizer = $this->buildEntityNormalizer();
-        $resourceClient = $this->createResourceClient();
-        $paginatorFactory = new PaginatorFactory($resourceClient, new PageFactory($denormalizer));
-
-        return new AkeneoPimObjectClient($resourceClient, $paginatorFactory, $normalizer, $denormalizer);
-    }
-
-    /**
-     * @return EntityNormalizer
-     */
-    protected function buildEntityNormalizer()
-    {
-        $normalizer = new EntityNormalizer();
-        $normalizer
-            ->registerNormalizer(new CategoryNormalizer())
-            ->registerNormalizer(new ProductNormalizer(new ProductValueNormalizer()))
-        ;
-
-        return $normalizer;
-    }
-
-    /**
-     * @return EntityDenormalizer
-     */
-    protected function buildEntityDenormalizer()
-    {
-        $this->entityDernomalizer = new EntityDenormalizer();
-        $this->entityDernomalizer
-            ->registerDenormalizer(new CategoryDenormalizer())
-            ->registerDenormalizer(new ProductDenormalizer())
-            ->registerDenormalizer(new MediaFileDenormalizer())
-        ;
-
-        return $this->entityDernomalizer;
     }
 
     protected function createResourceClient()

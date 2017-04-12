@@ -3,6 +3,8 @@
 namespace Akeneo\Client;
 
 use Akeneo\Entities\Product;
+use Akeneo\Pagination\Factory\PaginatorFactory;
+use Akeneo\Pagination\PaginatorInterface;
 
 /**
  * Interface AkeneoPimClientInterface
@@ -18,7 +20,7 @@ interface AkeneoPimClientInterface
      *
      * @throws Exception
      *
-     * @return mixed
+     * @return array
      */
     public function getCategory($code);
 
@@ -27,7 +29,7 @@ interface AkeneoPimClientInterface
      *
      * @throws Exception
      *
-     * @return mixed
+     * @return PaginatorInterface
      */
     public function getCategories(array $options = []);
 
@@ -58,7 +60,7 @@ interface AkeneoPimClientInterface
      *
      * @throws Exception
      *
-     * @return mixed
+     * @return array
      */
     public function getAttribute($code);
 
@@ -67,7 +69,7 @@ interface AkeneoPimClientInterface
      *
      * @throws Exception
      *
-     * @return mixed
+     * @return PaginatorInterface
      */
     public function getAttributes(array $options = []);
 
@@ -91,7 +93,7 @@ interface AkeneoPimClientInterface
      *
      * @throws Exception
      *
-     * @return mixed
+     * @return array
      */
     public function getProduct($identifier);
 
@@ -124,7 +126,7 @@ interface AkeneoPimClientInterface
      *
      * @throws Exception
      *
-     * @return mixed
+     * @return array
      */
     public function getMediaFile($code);
 
@@ -133,7 +135,7 @@ interface AkeneoPimClientInterface
      *
      * @throws Exception
      *
-     * @return mixed
+     * @return PaginatorInterface
      */
     public function getMediaFiles(array $options);
 

@@ -20,7 +20,7 @@ class PaginatorFactory implements PaginatorFactoryInterface
     protected $client;
 
     /**
-     * @var PageFactory
+     * @var PageFactoryInterface
      */
     protected $pageFactory;
 
@@ -35,14 +35,12 @@ class PaginatorFactory implements PaginatorFactoryInterface
     }
 
     /**
-     * @param array $firstPageData
-     *
-     * @return Paginator
+     * {@inheritdoc}
      */
-    public function createPaginator(array $firstPageData, $entityType = null)
+    public function createPaginator(array $firstPageData)
     {
-        $firstPage = $this->pageFactory->createPage($firstPageData, 1, $entityType);
+        $firstPage = $this->pageFactory->createPage($firstPageData, 1);
 
-        return new Paginator($this->client, $firstPage, $this->pageFactory, $entityType);
+        return new Paginator($this->client, $this->pageFactory, $firstPage);
     }
 }

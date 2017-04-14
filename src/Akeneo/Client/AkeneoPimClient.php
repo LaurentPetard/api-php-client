@@ -4,8 +4,7 @@ namespace Akeneo\Client;
 
 use Akeneo\Pagination\Factory\PaginatorFactoryInterface;
 use Akeneo\Route;
-use function GuzzleHttp\Psr7\stream_for;
-use GuzzleHttp\Stream\Stream;
+use Akeneo\UrlGenerator;
 
 /**
  * Class AkeneoPimClient
@@ -16,18 +15,25 @@ use GuzzleHttp\Stream\Stream;
  */
 class AkeneoPimClient implements AkeneoPimClientInterface
 {
+    protected $baseUri;
+
     /** @var ResourceClient */
     protected $resourceClient;
 
     /** @var  PaginatorFactoryInterface */
     protected $paginatorFactory;
 
+    /** @var UrlGenerator */
+    protected $urlGenerator;
+
     /**
+     * @param UrlGenerator              $urlGenerator
      * @param ResourceClient            $resourceClient
      * @param PaginatorFactoryInterface $paginatorFactory
      */
-    public function __construct(ResourceClient $resourceClient, PaginatorFactoryInterface $paginatorFactory)
+    public function __construct(UrlGenerator $urlGenerator, ResourceClient $resourceClient, PaginatorFactoryInterface $paginatorFactory)
     {
+        $this->urlGenerator = $urlGenerator;
         $this->resourceClient = $resourceClient;
         $this->paginatorFactory = $paginatorFactory;
     }
@@ -37,7 +43,7 @@ class AkeneoPimClient implements AkeneoPimClientInterface
      */
     public function getCategory($code)
     {
-        $url = sprintf(Route::CATEGORY, urlencode($code));
+        $url = $this->urlGenerator->generate(Route::CATEGORY, [$code]);
 
         return $this->resourceClient->getResource($url);
     }
@@ -47,7 +53,9 @@ class AkeneoPimClient implements AkeneoPimClientInterface
      */
     public function getCategories(array $parameters = [])
     {
-        return $this->getPaginatedResources(Route::CATEGORIES, $parameters);
+        $url = $this->urlGenerator->generate(Route::CATEGORIES, [], $parameters);
+
+        return $this->getPaginatedResources($url);
     }
 
     /**
@@ -55,7 +63,9 @@ class AkeneoPimClient implements AkeneoPimClientInterface
      */
     public function createCategory(array $data)
     {
-        $this->resourceClient->createResource(Route::CATEGORIES, $data);
+        $url = $this->urlGenerator->generate(Route::CATEGORIES);
+
+        $this->resourceClient->createResource($url, $data);
     }
 
     /**
@@ -63,13 +73,19 @@ class AkeneoPimClient implements AkeneoPimClientInterface
      */
     public function partialUpdateCategory($code, array $data)
     {
-        $url = sprintf(Route::CATEGORY, urlencode($code));
+        $url = $this->urlGenerator->generate(Route::CATEGORY, [$code]);
+
         $this->resourceClient->partialUpdateResource($url, $data);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function partialUpdateCategories($data)
     {
-        $this->resourceClient->partialUpdateResources(Route::CATEGORIES, $data);
+        $url = $this->urlGenerator->generate(Route::CATEGORIES);
+
+        $this->resourceClient->partialUpdateResources($url, $data);
     }
 
     /**
@@ -77,7 +93,7 @@ class AkeneoPimClient implements AkeneoPimClientInterface
      */
     public function getAttribute($code)
     {
-        $url = sprintf(Route::ATTRIBUTE, urlencode($code));
+        $url = $this->urlGenerator->generate(Route::ATTRIBUTE, [$code]);
 
         return $this->resourceClient->getResource($url);
     }
@@ -85,9 +101,11 @@ class AkeneoPimClient implements AkeneoPimClientInterface
     /**
      * {@inheritdoc}
      */
-    public function getAttributes(array $options = [])
+    public function getAttributes(array $parameters = [])
     {
-        return $this->getPaginatedResources(Route::ATTRIBUTES, $options);
+        $url = $this->urlGenerator->generate(Route::ATTRIBUTES, [], $parameters);
+
+        return $this->getPaginatedResources($url);
     }
 
     /**
@@ -95,7 +113,9 @@ class AkeneoPimClient implements AkeneoPimClientInterface
      */
     public function createAttribute(array $data)
     {
-        $this->resourceClient->createResource(Route::ATTRIBUTES, $data);
+        $url = $this->urlGenerator->generate(Route::ATTRIBUTES);
+
+        $this->resourceClient->createResource($url, $data);
     }
 
     /**
@@ -103,7 +123,7 @@ class AkeneoPimClient implements AkeneoPimClientInterface
      */
     public function partialUpdateAttribute($code, array $data)
     {
-        $url = sprintf(Route::ATTRIBUTE, urlencode($code));
+        $url = $this->urlGenerator->generate(Route::ATTRIBUTE, [$code]);
 
         $this->resourceClient->partialUpdateResource($url, $data);
     }
@@ -113,7 +133,7 @@ class AkeneoPimClient implements AkeneoPimClientInterface
      */
     public function getProduct($code)
     {
-        $url = sprintf(Route::PRODUCT, urlencode($code));
+        $url = $this->urlGenerator->generate(Route::PRODUCT, [$code]);
 
         return $this->resourceClient->getResource($url);
     }
@@ -123,7 +143,9 @@ class AkeneoPimClient implements AkeneoPimClientInterface
      */
     public function getProducts(array $options = [])
     {
-        return $this->getPaginatedResources(Route::PRODUCTS, $options);
+        $url = $this->urlGenerator->generate(Route::PRODUCTS);
+
+        return $this->getPaginatedResources($url, $options);
     }
 
     /**
@@ -131,7 +153,9 @@ class AkeneoPimClient implements AkeneoPimClientInterface
      */
     public function createProduct(array $data)
     {
-        $this->resourceClient->createResource(Route::PRODUCTS, $data);
+        $url = $this->urlGenerator->generate(Route::PRODUCTS);
+
+        $this->resourceClient->createResource($url, $data);
     }
 
     /**
@@ -139,7 +163,7 @@ class AkeneoPimClient implements AkeneoPimClientInterface
      */
     public function partialUpdateProduct($code, array $data)
     {
-        $url = sprintf(Route::PRODUCT, $code);
+        $url = $this->urlGenerator->generate(Route::PRODUCT, [$code]);
 
         $this->resourceClient->partialUpdateResource($url, $data);
     }
@@ -149,7 +173,7 @@ class AkeneoPimClient implements AkeneoPimClientInterface
      */
     public function getMediaFile($code)
     {
-        $url = sprintf(Route::MEDIA_FILE, $code);
+        $url = $this->urlGenerator->generate(Route::MEDIA_FILE, [$code]);
 
         return $this->resourceClient->getResource($url);
     }
@@ -159,7 +183,9 @@ class AkeneoPimClient implements AkeneoPimClientInterface
      */
     public function getMediaFiles(array $options)
     {
-        return $this->getPaginatedResources(Route::MEDIA_FILES, $options);
+        $url = $this->urlGenerator->generate(Route::MEDIA_FILES, [], $options);
+
+        return $this->getPaginatedResources($url);
     }
 
     /**
@@ -167,7 +193,7 @@ class AkeneoPimClient implements AkeneoPimClientInterface
      */
     public function downloadMediaFile($code, $targetFilePath)
     {
-        $url = sprintf(Route::MEDIA_FILE_DOWNLOAD, $code);
+        $url = $this->urlGenerator->generate(Route::MEDIA_FILE, [$code]);
 
         $this->resourceClient->downloadResource($url, $targetFilePath);
     }
@@ -180,7 +206,7 @@ class AkeneoPimClient implements AkeneoPimClientInterface
         $requestData = [
             [
                 'name' => 'product',
-                'contents' => \GuzzleHttp\json_encode($mediaProductData),
+                'contents' => json_encode($mediaProductData),
             ],
             [
                 'name' => 'file',
@@ -189,18 +215,19 @@ class AkeneoPimClient implements AkeneoPimClientInterface
             ]
         ];
 
-        $this->resourceClient->performMultipartRequest(Route::MEDIA_FILES, $requestData);
+        $url = $this->urlGenerator->generate(Route::MEDIA_FILES);
+
+        $this->resourceClient->sendMultipartRequest($url, $requestData);
     }
 
     /**
      * @param string $url
-     * @param array  $options
      *
      * @return \Akeneo\Pagination\PaginatorInterface
      */
-    protected function getPaginatedResources($url, array $options)
+    protected function getPaginatedResources($url)
     {
-        $resourcesData = $this->resourceClient->getResource($url, $options);
+        $resourcesData = $this->resourceClient->getResource($url);
 
         return $this->paginatorFactory->createPaginator($resourcesData);
     }

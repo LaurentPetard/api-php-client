@@ -5,11 +5,12 @@ namespace Akeneo\Client;
 use Akeneo\Authentication;
 use Akeneo\HttpMethod;
 use Akeneo\Route;
-use GuzzleHttp\Client as GuzzleClient;
-use GuzzleHttp\Exception\ClientException;
-use GuzzleHttp\RequestOptions;
+use Akeneo\UrlGenerator;
+use Http\Client\HttpClient;
+use Http\Message\MultipartStream\MultipartStreamBuilder;
+use Http\Message\RequestFactory;
+use Http\Message\StreamFactory;
 use Psr\Http\Message\ResponseInterface;
-use Symfony\Component\Config\Definition\Exception\Exception;
 
 /**
  * Client of Akeneo PIM
@@ -26,40 +27,45 @@ class ResourceClient
     /* @var Authentication */
     protected $authentication;
 
-    /** @var GuzzleClient */
-    protected $guzzleClient;
+    /** @var HttpClient */
+    protected $httpClient;
 
+    /** @var RequestFactory */
+    protected $requestFactory;
+
+    /** @var StreamFactory */
+    protected $streamFactory;
+
+    protected $urlGenerator;
 
     /**
-     * @param                $baseUri
      * @param Authentication $authentication
+     * @param HttpClient     $httpClient
+     * @param RequestFactory $requestFactory
      */
-    public function __construct(Authentication $authentication, GuzzleClient $guzzleClient)
+    public function __construct(Authentication $authentication, UrlGenerator $urlGenerator, HttpClient $httpClient, RequestFactory $requestFactory, StreamFactory $streamFactory)
     {
         $this->authentication = $authentication;
-
-        $this->guzzleClient = $guzzleClient;
+        $this->urlGenerator = $urlGenerator;
+        $this->httpClient = $httpClient;
+        $this->requestFactory = $requestFactory;
+        $this->streamFactory = $streamFactory;
     }
 
     /**
      * @param string $url
-     * @param array  $urlParameters
+     * @param array  $headers
      *
      * @throws Exception
      *
      * @return array
      */
-    public function getResource($url, array $urlParameters = [])
+    public function getResource($url, array $headers = [])
     {
-        $options = [];
-        if (!empty($urlParameters)) {
-            $options = [RequestOptions::QUERY => $urlParameters];
-        }
-
-        $response = $this->performAuthenticatedRequest(HttpMethod::GET, $url, $options);
+        $response = $this->sendAuthenticatedRequest(HttpMethod::GET, $url, $headers);
 
         if (200 !== $response->getStatusCode()) {
-            throw new Exception();
+            throw new \Exception($response->getBody()->getContents());
         }
 
         return json_decode($response->getBody()->getContents(), true);
@@ -71,12 +77,13 @@ class ResourceClient
      *
      * @throws Exception
      */
-    public function createResource($url, array $data)
+    public function createResource($url, array $data, array $headers = [])
     {
-        $response = $this->performAuthenticatedRequest(HttpMethod::POST, $url, [
-            RequestOptions::HEADERS => ['Content-Type' => 'application/json'],
-            RequestOptions::JSON    => $data,
-        ]);
+        $headers = array_merge($headers, ['Content-Type' => 'application/json']);
+        $body = json_encode($data);
+
+        $response = $this->sendAuthenticatedRequest(HttpMethod::POST, $url, $headers, $body);
+
         if (201 !== $response->getStatusCode()) {
             throw new Exception();
         }
@@ -88,36 +95,44 @@ class ResourceClient
      *
      * @throws Exception
      */
-    public function partialUpdateResource($url, array $data)
+    public function partialUpdateResource($url, array $data, array $headers = [])
     {
-        $response = $this->performAuthenticatedRequest(HttpMethod::PATCH, $url, [
-            RequestOptions::HEADERS => ['Content-Type' => 'application/json'],
-            RequestOptions::JSON    => $data,
-        ]);
+        $headers = array_merge($headers, ['Content-Type' => 'application/json']);
+        $body = json_encode($data);
+
+        $response = $this->sendAuthenticatedRequest(HttpMethod::PATCH, $url, $headers, $body);
 
         if (in_array($response->getStatusCode(), [200, 201])) {
             throw new Exception($response->getStatusCode() . '--' . $response->getBody()->getContents());
         }
     }
 
-    public function partialUpdateResources($url, $resources)
+    /**
+     * @param string             $url
+     * @param array|\Traversable $resources
+     * @param array              $headers
+     *
+     * @throws \Exception
+     */
+    public function partialUpdateResources($url, $resources, array $headers = [])
     {
         if (!is_array($resources) && !$resources instanceof \Traversable) {
             throw new \InvalidArgumentException('The parameter resourcesData must be an array or implements Traversable');
         }
 
-        $streamedBody = function() use($resources) {
+        $headers = array_merge($headers, ['Content-Type' => 'application/vnd.akeneo.collection+json']);
+
+        $streamBuild = function() use($resources) {
             $isFirstLine = true;
             foreach ($resources as $resourceData) {
-                yield ($isFirstLine ? '' : PHP_EOL).\GuzzleHttp\json_encode($resourceData);
+                yield ($isFirstLine ? '' : PHP_EOL).json_encode($resourceData);
                 $isFirstLine = false;
             }
         };
 
-        $response = $this->performAuthenticatedRequest(HttpMethod::PATCH, $url, [
-            RequestOptions::HEADERS => ['Content-Type' => 'application/vnd.akeneo.collection+json'],
-            RequestOptions::BODY    => $streamedBody(),
-        ]);
+        $streamedBody = $this->streamFactory->createStream($streamBuild());
+
+        $response = $this->sendAuthenticatedRequest(HttpMethod::PATCH, $url, $headers, $streamedBody);
 
         if (!in_array($response->getStatusCode(), [200, 201])) {
             throw new \Exception($response->getStatusCode() . '--' . $response->getBody()->getContents());
@@ -132,68 +147,60 @@ class ResourceClient
      */
     public function downloadResource($url, $filePath)
     {
-        $options = [RequestOptions::SINK => $filePath];
-
-        $response = $this->performAuthenticatedRequest(HttpMethod::GET, $url, $options);
-
-        if (200 !== $response->getStatusCode()) {
-            throw new Exception();
-        }
+        // TODO
     }
 
     /**
-     * @param string $httpMethod
-     * @param string $url
-     * @param array  $options
+     * @param string                               $httpMethod
+     * @param string|UriInterface                  $uri
+     * @param array                                $headers
+     * @param resource|string|StreamInterface|null $body
      *
      * @throws \Exception
      *
      * @return ResponseInterface
      */
-    public function performAuthenticatedRequest($httpMethod, $url, array $options = [])
+    public function sendAuthenticatedRequest($httpMethod, $uri, array $headers = [], $body = null)
     {
         if (!$this->isConnected()) {
             $this->connect();
         }
 
-        $options[RequestOptions::HEADERS]['Authorization'] = 'Bearer ' . $this->authentication->getAccessToken();
+        $headers = array_merge($headers, ['Authorization' => 'Bearer ' . $this->authentication->getAccessToken()]);
+        $request = $this->requestFactory->createRequest($httpMethod, $uri, $headers, $body);
 
-        try {
-            $response = $this->guzzleClient->request(
-                $httpMethod,
-                $url,
-                $options
-            );
-        } catch (ClientException $e) {
-            if (401 === $e->getResponse()->getStatusCode()) {
-                $this->connect();
-                try {
-                    $options[RequestOptions::HEADERS]['Authorization'] = 'Bearer ' . $this->authentication->getAccessToken();
-                    $response = $this->guzzleClient->request(
-                        $httpMethod,
-                        $url,
-                        $options
-                    );
-                } catch (ClientException $e) {
-                    throw new \Exception($e);
-                }
-            } else {
-                throw $e;
-            }
+        $response = $this->httpClient->sendRequest($request);
+
+        // FIXME Refactor connection fail-over
+        if (401 === $response->getStatusCode()) {
+            $this->connect();
+
+            $headers = array_merge($headers, ['Authorization' => 'Bearer ' . $this->authentication->getAccessToken()]);
+            $request = $this->requestFactory->createRequest($httpMethod, $uri, $headers, $body);
+
+            return $this->httpClient->sendRequest($request);
         }
 
         return $response;
     }
 
-    public function performMultipartRequest($url, array $requestData)
+    public function sendMultipartRequest($url, array $requestData)
     {
-        $options = [
-            RequestOptions::HEADERS => ['Accept' => 'multipart/form-data'],
-            RequestOptions::MULTIPART => $requestData,
+        $streamBuilder = new MultipartStreamBuilder($this->streamFactory);
 
+        foreach ($requestData as $requestDatum) {
+            $options = isset($requestDatum['options']) ? $requestDatum['options'] : [];
+            $streamBuilder->addResource($requestDatum['name'], $requestDatum['contents'], $options);
+        }
+
+        $multipartStream = $streamBuilder->build();
+        $boundary = $streamBuilder->getBoundary();
+        $headers = [
+            'Content-Type' => sprintf('multipart/form-data; boundary="%s"', $boundary),
+            'Accept'       => '*/*',
         ];
 
-        $this->performAuthenticatedRequest(HttpMethod::POST, $url, $options);
+        $this->sendAuthenticatedRequest(HttpMethod::POST, $url, $headers, $multipartStream);
     }
 
     /**
@@ -201,24 +208,22 @@ class ResourceClient
      */
     protected function connect()
     {
-        $body = [
+        $body = json_encode([
             'grant_type' => 'password',
             'username'   => $this->authentication->getUsername(),
             'password'   => $this->authentication->getPassword(),
+        ]);
+
+        $headers = [
+            'Authorization' => 'Basic '.base64_encode($this->authentication->getClientId().':'.$this->authentication->getSecret()),
+            'Content-Type' => 'application/json',
         ];
 
+        $url = $this->urlGenerator->generate(Route::TOKEN);
+        $request = $this->requestFactory->createRequest(HttpMethod::POST, $url, $headers, $body);
+
         try {
-            $response = $this->guzzleClient->post(Route::TOKEN, [
-                RequestOptions::JSON    => $body,
-                RequestOptions::AUTH    => [
-                    $this->authentication->getClientId(),
-                    $this->authentication->getSecret(),
-                ],
-                RequestOptions::HEADERS => [
-//                    'Cookie'     => 'XDEBUG_SESSION=PHPSTORM',
-                    'Content-Type' => 'application/json',
-                ],
-            ]);
+            $response = $this->httpClient->sendRequest($request);
 
             if (200 !== $response->getStatusCode()) {
                 // TODO : create and handle exception (300.. etc)
@@ -234,6 +239,9 @@ class ResourceClient
         }
     }
 
+    /**
+     * @return bool
+     */
     protected function isConnected()
     {
         return null !== $this->authentication->getAccessToken();

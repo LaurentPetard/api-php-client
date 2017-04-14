@@ -3,18 +3,15 @@
 namespace Akeneo\Client;
 
 use Akeneo\Authentication;
-use Akeneo\Denormalizer\CategoryDenormalizer;
-use Akeneo\Denormalizer\EntityDenormalizer;
-use Akeneo\Denormalizer\MediaFileDenormalizer;
-use Akeneo\Denormalizer\ProductDenormalizer;
-use Akeneo\Normalizer\CategoryNormalizer;
-use Akeneo\Normalizer\EntityNormalizer;
-use Akeneo\Normalizer\ProductNormalizer;
-use Akeneo\Normalizer\ProductValueNormalizer;
-use GuzzleHttp\Client;
-use GuzzleHttp\RequestOptions;
 use Akeneo\Pagination\Factory\PageFactory;
 use Akeneo\Pagination\Factory\PaginatorFactory;
+use Akeneo\UrlGenerator;
+use Http\Client\HttpClient;
+use Http\Discovery\HttpClientDiscovery;
+use Http\Discovery\MessageFactoryDiscovery;
+use Http\Discovery\StreamFactoryDiscovery;
+use Http\Message\RequestFactory;
+use Http\Message\StreamFactory;
 
 /**
  * Class ClientBuilder
@@ -25,22 +22,30 @@ use Akeneo\Pagination\Factory\PaginatorFactory;
  */
 class ClientBuilder
 {
-    const TIMEOUT = -1;
-
     /** @var string */
     protected $baseUri;
 
     /** @var Authentication */
     protected $authentication;
 
+    /** @var HttpClient */
+    protected $httpClient;
+
+    /** @var RequestFactory */
+    protected $requestFactory;
+
+    /** @var StreamFactory */
+    protected $streamFactory;
+
     /**
      * @param string         $baseUri
      * @param Authentication $authentication
      */
-    public function __construct($baseUri, Authentication $authentication)
+    public function __construct($baseUri, Authentication $authentication, HttpClient $httpClient = null)
     {
         $this->baseUri = $baseUri;
         $this->authentication = $authentication;
+        $this->httpClient = $httpClient ?: HttpClientDiscovery::find();
     }
 
     /**
@@ -50,18 +55,17 @@ class ClientBuilder
     {
         $resourceClient = $this->createResourceClient();
         $paginatorFactory = new PaginatorFactory($resourceClient, new PageFactory());
+        $urlGenerator = new UrlGenerator($this->baseUri);
 
-
-        return new AkeneoPimClient($resourceClient, $paginatorFactory);
+        return new AkeneoPimClient($urlGenerator, $resourceClient, $paginatorFactory);
     }
 
     protected function createResourceClient()
     {
-        $guzzleClient = new Client([
-            'base_uri' => $this->baseUri,
-            RequestOptions::TIMEOUT  => static::TIMEOUT,
-        ]);
+        $requestFactory = MessageFactoryDiscovery::find();
+        $streamFactory = StreamFactoryDiscovery::find();
+        $urlGenerator = new UrlGenerator($this->baseUri);
 
-        return new ResourceClient($this->authentication, $guzzleClient);
+        return new ResourceClient($this->authentication, $urlGenerator, $this->httpClient, $requestFactory, $streamFactory);
     }
 }
